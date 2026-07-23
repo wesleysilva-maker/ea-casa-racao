@@ -29,7 +29,7 @@ export default function ProdutosPage() {
     carregarProdutos();
   }, []);
 
-  async function excluirProduto(produto: Produto) {
+ async function excluirProduto(produto: Produto) {
   if (!confirm(`Excluir "${produto.nome}"?`)) return;
 
   const { error } = await supabase
@@ -44,7 +44,9 @@ export default function ProdutosPage() {
 
   carregarProdutos();
 }
-    <div className="p-8">
+
+return (
+  <div className="p-8">
 
       <div className="flex justify-between items-center mb-8">
 
@@ -194,7 +196,7 @@ export default function ProdutosPage() {
 
       </div>
 
-      <ProductModal
+           <ProductModal
         open={modalOpen}
         produto={produtoEditando}
         onClose={() => {
@@ -207,6 +209,6 @@ export default function ProdutosPage() {
           setProdutoEditando(null);
         }}
       />
-
     </div>
+  );
 }
