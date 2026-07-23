@@ -13,8 +13,8 @@ export default function Cart() {
     clearCart,
   } = useCart();
 
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const total = cart.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
@@ -22,48 +22,75 @@ export default function Cart() {
   );
 
   return (
-    <><button
-  onClick={() => setOpen(!open)}
-  className="fixed bottom-28 left-4 z-50 bg-orange-600 hover:bg-orange-700 text-white rounded-full w-16 h-16 shadow-xl text-2xl"
->
-  🛒
-</button>
+    <>
+      {/* Botão do carrinho */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 left-6 z-50 bg-orange-600 hover:bg-orange-700 text-white rounded-full w-16 h-16 shadow-xl text-2xl"
+      >
+        🛒
+      </button>
+
+      {/* Fundo escuro */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Carrinho */}
       <div
-  className={`
-    fixed
-    right-4
-    bottom-24
-    w-[calc(100%-2rem)]
-    max-w-sm
-    bg-white
-    rounded-2xl
-    shadow-2xl
-    p-5
-    border
-    z-50
-    transition-all
-    ${open ? "block" : "hidden"}
-  `}
->
+        className={`
+          fixed
+          z-[60]
+          bg-white
+          shadow-2xl
+          transition-all
+          duration-300
 
-        <h2 className="text-2xl font-bold mb-5">
-          Carrinho
-        </h2>
+          bottom-0
+          left-0
+          w-full
+          rounded-t-3xl
+          max-h-[85vh]
 
-        {cart.length === 0 ? (
-          <p className="text-gray-500">
-            Carrinho vazio.
-          </p>
-        ) : (
-          <>
+          md:left-auto
+          md:right-5
+          md:bottom-5
+          md:w-[360px]
+          md:rounded-2xl
 
-            {cart.map((item) => (
+          ${open ? "translate-y-0" : "translate-y-full md:translate-y-0 md:right-[-420px]"}
+        `}
+      >
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between border-b p-5">
+          <h2 className="text-2xl font-bold">
+            Carrinho
+          </h2>
 
+          <button
+            onClick={() => setOpen(false)}
+            className="text-4xl leading-none text-gray-600 hover:text-black"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Lista */}
+        <div className="max-h-[45vh] overflow-y-auto px-5">
+
+          {cart.length === 0 ? (
+            <div className="py-10 text-center text-gray-500">
+              Carrinho vazio.
+            </div>
+          ) : (
+            cart.map((item) => (
               <div
                 key={item.id}
                 className="border-b py-4 flex justify-between gap-3"
               >
-
                 <div className="flex-1">
 
                   <h4 className="font-bold">
@@ -78,7 +105,7 @@ export default function Cart() {
 
                     <button
                       onClick={() => decreaseQuantity(item.id)}
-                      className="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-full font-bold"
+                      className="w-8 h-8 rounded-full bg-gray-200"
                     >
                       -
                     </button>
@@ -89,7 +116,7 @@ export default function Cart() {
 
                     <button
                       onClick={() => increaseQuantity(item.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white w-8 h-8 rounded-full font-bold"
+                      className="w-8 h-8 rounded-full bg-green-600 text-white"
                     >
                       +
                     </button>
@@ -100,54 +127,46 @@ export default function Cart() {
 
                 <button
                   onClick={() => removeFromCart(item.id)}
-                  className="text-red-500 hover:text-red-700 text-xl font-bold"
+                  className="text-red-500 text-2xl"
                 >
-                  ✕
+                  ×
                 </button>
-
               </div>
+            ))
+          )}
 
-            ))}
+        </div>
 
-            <div className="mt-6">
+        {/* Rodapé */}
+        {cart.length > 0 && (
+          <div className="border-t p-5">
 
-              <h3 className="text-2xl font-bold text-green-700">
-                Total: R$ {total.toFixed(2)}
-              </h3>
-
-            </div>
+            <h3 className="text-2xl font-bold text-green-700 mb-4">
+              Total: R$ {total.toFixed(2)}
+            </h3>
 
             <button
-              onClick={() => {
-  if (cart.length === 0) {
-    alert("Seu carrinho está vazio.");
-    return;
-  }
-
-  setCheckoutOpen(true);
-}}
-              className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold"
+              onClick={() => setCheckoutOpen(true)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold"
             >
               Finalizar Pedido
             </button>
 
             <button
               onClick={clearCart}
-              className="mt-3 w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold"
+              className="w-full mt-3 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold"
             >
               Limpar Carrinho
             </button>
 
-          </>
+          </div>
         )}
-
       </div>
 
       <CheckoutModal
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
       />
-
     </>
   );
 }
