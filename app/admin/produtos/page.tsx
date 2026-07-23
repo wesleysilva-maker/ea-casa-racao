@@ -30,38 +30,20 @@ export default function ProdutosPage() {
   }, []);
 
   async function excluirProduto(produto: Produto) {
-    if (!confirm(`Excluir "${produto.nome}"?`)) return;
+  if (!confirm(`Excluir "${produto.nome}"?`)) return;
 
-    try {
-      if (produto.imagem) {
-        const url = new URL(produto.imagem);
+  const { error } = await supabase
+    .from("produtos")
+    .delete()
+    .eq("id", produto.id);
 
-        const caminho = decodeURIComponent(
-          url.pathname.split("/object/public/produtos/")[1] || ""
-        );
-
-        if (caminho) {
-          await supabase.storage
-            .from("produtos")
-            .remove([caminho]);
-        }
-      }
-
-      const { error } = await supabase
-        .from("produtos")
-        .delete()
-        .eq("id", produto.id);
-
-      if (error) throw error;
-
-      carregarProdutos();
-
-    } catch (err: any) {
-      alert(err.message);
-    }
+  if (error) {
+    alert(error.message);
+    return;
   }
 
-  return (
+  carregarProdutos();
+}
     <div className="p-8">
 
       <div className="flex justify-between items-center mb-8">
@@ -227,5 +209,4 @@ export default function ProdutosPage() {
       />
 
     </div>
-  );
 }
