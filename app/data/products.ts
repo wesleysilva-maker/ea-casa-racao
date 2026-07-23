@@ -1,0 +1,38 @@
+export const products = [
+  {
+    id: 1,
+    nome: "Ração Golden Fórmula",
+    categoria: "Cachorros",
+    preco: 189.99,
+    imagem: "/products/golden.png",
+    estoque: 12,
+    promocao: true,
+  },
+  {
+    id: 2,
+    nome: "Ração Magnus Premium",
+    categoria: "Cachorros",
+    preco: 124.99,
+    imagem: "/products/magnus.jpeg",
+    estoque: 20,
+    promocao: false,
+  },
+  {
+    id: 3,
+    nome: "Pedigree Adulto",
+    categoria: "Cachorros",
+    preco: 20.00,
+    imagem: "/products/pedigree.jpeg",
+    estoque: 15,
+    promocao: true,
+  },
+  {
+    id: 4,
+    nome: "Pedigree Raças Pequenas",
+    categoria: "Cachorros",
+    preco: 20.00,
+    imagem: "/products/pedigree-pequena.jpeg",
+    estoque: 10,
+    promocao: false,
+  },
+];

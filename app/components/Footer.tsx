@@ -1,0 +1,29 @@
+export default function Footer() {
+  return (
+    <footer className="bg-black text-white mt-20">
+
+      <div className="max-w-7xl mx-auto px-6 py-12">
+
+        <h2 className="text-3xl font-black text-orange-500">
+          EA CASA DE RAÇÃO
+        </h2>
+
+        <p className="mt-4">
+          Tudo para seu melhor amigo.
+        </p>
+
+        <div className="mt-8 space-y-2">
+
+          <p>📍 Lauro de Freitas - BA</p>
+
+          <p>📞 (71) 99388-7651</p>
+
+          <p>🚚 Entregamos em toda a região.</p>
+
+        </div>
+
+      </div>
+
+    </footer>
+  );
+}
