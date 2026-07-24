@@ -13,6 +13,7 @@ export interface Produto {
   estoque: number;
   descricao: string;
   promocao: boolean;
+  fracionado: boolean;
 }
 
 interface Props {
@@ -36,7 +37,7 @@ export default function ProductModal({
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
   const [promocao, setPromocao] = useState(false);
-
+const [fracionado, setFracionado] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function ProductModal({
       setEstoque(String(produto.estoque));
       setDescricao(produto.descricao);
       setPromocao(produto.promocao);
-
+setFracionado(produto.fracionado ?? false);
     } else {
 
       limparFormulario();
@@ -68,7 +69,7 @@ export default function ProductModal({
     setEstoque("");
     setDescricao("");
     setPromocao(false);
-
+setFracionado(false);
   }
 
   if (!open) return null;
@@ -85,14 +86,15 @@ async function salvarProduto() {
     setLoading(true);
 
     const dados = {
-      nome,
-      categoria,
-      preco: Number(preco),
-      imagem,
-      estoque: Number(estoque || 0),
-      descricao,
-      promocao,
-    };
+  nome,
+  categoria,
+  preco: Number(preco),
+  imagem,
+  estoque: Number(estoque || 0),
+  descricao,
+  promocao,
+  fracionado,
+};
 
     if (produto?.id) {
 
@@ -202,6 +204,18 @@ return (
           Produto em promoção
 
         </label>
+
+<label className="flex items-center gap-3">
+
+  <input
+    type="checkbox"
+    checked={fracionado}
+    onChange={(e) => setFracionado(e.target.checked)}
+  />
+
+  Produto vendido fracionado (kg)
+
+</label>
 
       </div>
 
