@@ -4,9 +4,15 @@ type Props = {
 };
 
 const categorias = [
-  "AAAAAAAA",
-  "BBBBBBBB",
-  "CCCCCCCC",
+  "Todos",
+  "Cachorros",
+  "Gatos",
+  "Petiscos",
+  "Higiene",
+  "Pássaros",
+  "Peixes",
+  "Remedios",
+  "Brinquedos",
 ];
 
 export default function Categories({ selected, onSelect }: Props) {
