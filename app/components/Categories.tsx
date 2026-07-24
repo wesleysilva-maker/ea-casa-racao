@@ -4,13 +4,9 @@ type Props = {
 };
 
 const categorias = [
-  "Todos",
-  "Cachorros",
-  "Gatos",
-  "Petiscos",
-  "Higiene",
-  "Pássaros",
-  "Peixes",
+  "AAAAAAAA",
+  "BBBBBBBB",
+  "CCCCCCCC",
 ];
 
 export default function Categories({ selected, onSelect }: Props) {
@@ -23,8 +19,8 @@ export default function Categories({ selected, onSelect }: Props) {
             onClick={() => onSelect(categoria)}
             className={`px-6 py-3 rounded-full font-semibold transition ${
               selected === categoria
-                ? "bg-orange-500 text-white"
-                : "bg-orange-100 hover:bg-orange-500 hover:text-white"
+                ? "bg-orange-500 text-black"
+                : "bg-orange-100 hover:bg-orange-500 hover:text-black"
             }`}
           >
             {categoria}
