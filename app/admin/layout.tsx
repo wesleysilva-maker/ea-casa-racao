@@ -44,23 +44,31 @@ export default function AdminLayout({
   }
 
   const menu = [
-    {
-      nome: "📊 Dashboard",
-      href: "/admin/dashboard",
-    },
-    {
-      nome: "📦 Produtos",
-      href: "/admin/produtos",
-    },
-    {
-      nome: "🛒 Pedidos",
-      href: "/admin/pedidos",
-    },
-    {
-      nome: "⚙ Configurações",
-      href: "/admin/configuracoes",
-    },
-  ];
+  {
+    nome: "📊 Dashboard",
+    href: "/admin/dashboard",
+  },
+  {
+    nome: "📦 Produtos",
+    href: "/admin/produtos",
+  },
+  {
+    nome: "🛒 Pedidos",
+    href: "/admin/pedidos",
+  },
+  {
+    nome: "👥 Clientes",
+    href: "/admin/clientes",
+  },
+  {
+    nome: "🛍 Venda Balcão",
+    href: "/admin/vendas",
+  },
+  {
+    nome: "⚙ Configurações",
+    href: "/admin/configuracoes",
+  },
+];
 
   if (loading) {
     return (
