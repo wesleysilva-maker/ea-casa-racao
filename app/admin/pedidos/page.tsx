@@ -589,6 +589,7 @@
                   <option value="SAIU PARA ENTREGA">
                     🔵 SAIU PARA ENTREGA
                   </option>
+                  <option value="PRONTO PARA RETIRADA">🟣 PRONTO PARA RETIRADA</option>
                   <option value="ENTREGUE">🟢 ENTREGUE</option>
                   <option value="CANCELADO">⚫ CANCELADO</option>
                 </select>
@@ -623,13 +624,22 @@ Seu pedido #${pedidoAtual.id} foi entregue.
 Obrigado pela preferência! ❤️
 
 EA Casa de Ração`
-              : `Olá ${pedidoAtual.cliente}! 😊
+              : status === "PRONTO PARA RETIRADA"
+              ? `Olá ${pedidoAtual.cliente}! 😊
 
 Seu pedido #${pedidoAtual.id} está pronto para retirada.
 
-📍 EA Casa de Ração
+📍 Endereço:
+EA Casa de Ração
 
 Aguardamos você! 🐶🐱`
+              : `Olá ${pedidoAtual.cliente}! 😊
+
+Seu pedido #${pedidoAtual.id} foi atualizado.
+
+Em caso de dúvidas, fale conosco pelo WhatsApp.
+
+EA Casa de Ração 🐶🐱`
           )}`
         : "#"
     }
@@ -662,7 +672,7 @@ Aguardamos você! 🐶🐱`
   </button>
 
 </div>
-              </div>
+              </div>  
 
             </div>
           </div>
