@@ -64,23 +64,29 @@ function adicionarCarrinho(produto: any) {
 
     const gramas = Number(entrada.replace(",", "."));
 
-const kg = gramas / 1000;
+    if (isNaN(gramas) || gramas <= 0) {
+      alert("Quantidade inválida.");
+      return;
+    }
 
-   if (isNaN(gramas) || gramas <= 0) {
-  alert("Quantidade inválida.");
-  return;
-}
+    const kg = gramas / 1000;
 
-setCarrinho([
-  ...carrinho,
-  {
-    ...produto,
-    quantidade: kg,
-    fracionado: true,
-  },
-]);
+    if (kg > produto.estoque_kg) {
+      alert("Estoque insuficiente.");
+      return;
+    }
 
-return;
+    setCarrinho([
+      ...carrinho,
+      {
+        ...produto,
+        quantidade: kg,          // usado para calcular o valor
+        gramas: gramas,          // usado para exibir
+        fracionado: true,
+      },
+    ]);
+
+    return;
   }
 
   // Produto normal
@@ -408,9 +414,9 @@ return (
                     -
                   </button>
 
-                 <strong>
+                <strong>
   {produto.fracionado
-    ? `${produto.quantidade} kg`
+    ? `${produto.gramas} g`
     : produto.quantidade}
 </strong>
 
