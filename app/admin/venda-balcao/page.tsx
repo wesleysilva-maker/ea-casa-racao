@@ -58,16 +58,17 @@ function adicionarCarrinho(produto: any) {
   // Produto fracionado
   if (produto.fracionado) {
 
-    const entrada = prompt("Quantas gramas deseja vender?");
+    const entrada = prompt("Quantas gramas deseja vender? (Digite apenas números. Ex: 500)");
+console.log("Entrada:", entrada);
 
-    if (entrada === null) return;
+const gramas = Number(entrada?.replace(",", "."));
 
-    const gramas = Number(entrada.replace(",", "."));
+console.log("Gramas:", gramas);
 
-    if (isNaN(gramas) || gramas <= 0) {
-      alert("Quantidade inválida.");
-      return;
-    }
+if (isNaN(gramas) || gramas <= 0) {
+  alert("Quantidade inválida.");
+  return;
+}
 
     const kg = gramas / 1000;
 
