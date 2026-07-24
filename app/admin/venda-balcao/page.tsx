@@ -72,9 +72,14 @@ if (isNaN(gramas) || gramas <= 0) {
 
     const kg = gramas / 1000;
 
-    if (kg > produto.estoque_kg) {
-      alert("Estoque insuficiente.");
-      return;
+console.log("Gramas:", gramas);
+console.log("KG:", kg);
+console.log("Estoque KG:", produto.estoque_kg);
+console.log(produto);
+
+if (kg > produto.estoque_kg) {
+  alert("Estoque insuficiente.");
+  return;
     }
 
     setCarrinho([
