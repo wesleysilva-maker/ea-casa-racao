@@ -53,24 +53,19 @@ export default function VendaBalcaoPage() {
   setProdutos(produtosFormatados);
 }
 
- function adicionarCarrinho(produto: any) {
+function adicionarCarrinho(produto: any) {
 
   // Produto fracionado
   if (produto.fracionado) {
 
-    const entrada = prompt("Quantos kg deseja vender?");
+    const entrada = prompt("Quantos kg deseja vender? (Ex: 0.5 ou 2)");
 
-    if (!entrada) return;
+    if (entrada === null) return;
 
-    const kg = Number(entrada.replace(",", "."));
+    const kg = parseFloat(entrada.replace(",", "."));
 
     if (isNaN(kg) || kg <= 0) {
       alert("Quantidade inválida.");
-      return;
-    }
-
-    if (kg > produto.estoque_kg) {
-      alert("Estoque insuficiente.");
       return;
     }
 
@@ -87,7 +82,6 @@ export default function VendaBalcaoPage() {
   }
 
   // Produto normal
-
   const existe = carrinho.find((p) => p.id === produto.id);
 
   if (existe) {
@@ -104,7 +98,6 @@ export default function VendaBalcaoPage() {
       {
         ...produto,
         quantidade: 1,
-        fracionado: false,
       },
     ]);
   }
