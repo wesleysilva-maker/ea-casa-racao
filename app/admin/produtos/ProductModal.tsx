@@ -33,6 +33,7 @@ export default function ProductModal({
   const [nome, setNome] = useState("");
   const [categoria, setCategoria] = useState("");
   const [preco, setPreco] = useState("");
+  const [pesoSaco, setPesoSaco] = useState("");   
   const [imagem, setImagem] = useState("");
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -171,6 +172,14 @@ return (
           onChange={(e) => setPreco(e.target.value)}
           className="w-full border rounded-lg p-3"
         />
+        
+        <input
+  type="number"
+  placeholder="Peso do saco (kg)"
+  value={pesoSaco}
+  onChange={(e) => setPesoSaco(e.target.value)}
+  className="w-full border rounded-lg p-3"
+/>
 
         <ImageUpload
           value={imagem}
