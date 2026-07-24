@@ -58,27 +58,29 @@ function adicionarCarrinho(produto: any) {
   // Produto fracionado
   if (produto.fracionado) {
 
-    const entrada = prompt("Quantos kg deseja vender? (Ex: 0.5 ou 2)");
+    const entrada = prompt("Quantas gramas deseja vender?");
 
     if (entrada === null) return;
 
-    const kg = parseFloat(entrada.replace(",", "."));
+    const gramas = Number(entrada.replace(",", "."));
 
-    if (isNaN(kg) || kg <= 0) {
-      alert("Quantidade inválida.");
-      return;
-    }
+const kg = gramas / 1000;
 
-    setCarrinho([
-      ...carrinho,
-      {
-        ...produto,
-        quantidade: kg,
-        fracionado: true,
-      },
-    ]);
+   if (isNaN(gramas) || gramas <= 0) {
+  alert("Quantidade inválida.");
+  return;
+}
 
-    return;
+setCarrinho([
+  ...carrinho,
+  {
+    ...produto,
+    quantidade: kg,
+    fracionado: true,
+  },
+]);
+
+return;
   }
 
   // Produto normal
