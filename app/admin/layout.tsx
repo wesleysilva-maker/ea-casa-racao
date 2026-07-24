@@ -61,9 +61,9 @@ export default function AdminLayout({
     href: "/admin/clientes",
   },
   {
-    nome: "🛍 Venda Balcão",
-    href: "/admin/vendas",
-  },
+  nome: "🛍 Venda Balcão",
+  href: "/admin/venda-balcao",
+},  
   {
     nome: "⚙ Configurações",
     href: "/admin/configuracoes",
