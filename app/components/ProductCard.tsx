@@ -10,6 +10,8 @@ type Product = {
   preco: number;
   imagem: string;
   estoque: number;
+  estoque_kg: number;
+  fracionado: boolean;
   promocao: boolean;
 };
 
@@ -19,6 +21,9 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { addToCart } = useCart();
+const disponivel = product.fracionado
+  ? product.estoque_kg > 0
+  : product.estoque > 0;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition flex flex-col">
@@ -38,7 +43,7 @@ export default function ProductCard({ product }: Props) {
           </div>
         )}
 
-        {product.estoque <= 0 && (
+        {!disponivel && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <span className="bg-red-600 text-white px-6 py-2 rounded-xl text-lg font-bold">
               ESGOTADO
@@ -63,10 +68,13 @@ export default function ProductCard({ product }: Props) {
         </p>
 
         <p className="text-sm text-gray-500 mt-2">
-          Estoque: {product.estoque}
-        </p>
+{product.fracionado
+  ? `Disponível: ${product.estoque_kg} kg`
+  : `Estoque: ${product.estoque}`}
+</p>
 
-        {product.estoque > 0 ? (
+        {disponivel ? (
+        
           <button
             onClick={() => addToCart(product)}
             className="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold mt-6"

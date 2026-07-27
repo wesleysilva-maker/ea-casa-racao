@@ -20,6 +20,8 @@ type Product = {
   preco: number;
   imagem: string;
   estoque: number;
+  estoque_kg: number;
+  fracionado: boolean;
   promocao: boolean;
 };
 
@@ -43,6 +45,7 @@ export default function Home() {
       return;
     }
 
+    console.log(data);
     setProducts(data || []);
   }
 
