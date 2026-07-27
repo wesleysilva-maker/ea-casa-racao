@@ -29,27 +29,25 @@ export default function ProdutosPage() {
     carregarProdutos();
   }, []);
 
- async function excluirProduto(produto: Produto) {
-  if (!confirm(`Excluir "${produto.nome}"?`)) return;
+  async function excluirProduto(produto: Produto) {
+    if (!confirm(`Excluir "${produto.nome}"?`)) return;
 
-  const { error } = await supabase
-    .from("produtos")
-    .delete()
-    .eq("id", produto.id);
+    const { error } = await supabase
+      .from("produtos")
+      .delete()
+      .eq("id", produto.id);
 
-  if (error) {
-    alert(error.message);
-    return;
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    carregarProdutos();
   }
 
-  carregarProdutos();
-}
-
-return (
-  <div className="p-8">
-
+  return (
+    <div className="p-8">
       <div className="flex justify-between items-center mb-8">
-
         <h1 className="text-3xl font-bold">
           Gerenciar Produtos
         </h1>
@@ -63,54 +61,38 @@ return (
         >
           + Novo Produto
         </button>
-
       </div>
 
       <div className="overflow-x-auto rounded-xl border shadow">
-
         <table className="w-full">
-
           <thead className="bg-orange-100">
-
             <tr>
-
               <th className="p-4 text-left">Foto</th>
               <th className="text-left">Nome</th>
               <th className="text-left">Categoria</th>
               <th className="text-left">Preço</th>
+              <th className="text-left">Tipo</th>
               <th className="text-left">Estoque</th>
               <th className="text-left">Promoção</th>
               <th className="text-center">Ações</th>
-
             </tr>
-
           </thead>
 
           <tbody>
-
             {produtos.length === 0 ? (
-
               <tr>
-
-                <td colSpan={7} className="text-center py-10">
+                <td colSpan={8} className="text-center py-10">
                   Nenhum produto cadastrado.
                 </td>
-
               </tr>
-
             ) : (
-
               produtos.map((produto) => (
-
                 <tr
                   key={produto.id}
                   className="border-t hover:bg-orange-50 transition"
                 >
-
                   <td className="p-3">
-
                     {produto.imagem ? (
-
                       <Image
                         src={produto.imagem}
                         alt={produto.nome}
@@ -118,15 +100,11 @@ return (
                         height={70}
                         className="rounded-lg object-cover border"
                       />
-
                     ) : (
-
                       <div className="w-[70px] h-[70px] rounded-lg border bg-gray-100 flex items-center justify-center text-xs text-gray-500">
                         Sem foto
                       </div>
-
                     )}
-
                   </td>
 
                   <td className="font-semibold">
@@ -139,30 +117,38 @@ return (
                     R$ {Number(produto.preco).toFixed(2)}
                   </td>
 
-                  <td>{produto.estoque}</td>
-
                   <td>
-
-                    {produto.promocao ? (
-
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        Em promoção
+                    {produto.fracionado ? (
+                      <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        🎁 Fracionado ({produto.peso_saco} kg)
                       </span>
-
                     ) : (
-
-                      <span className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm">
-                        Normal
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        📦 Normal
                       </span>
-
                     )}
+                  </td>
 
+                  <td className="font-bold">
+                    {produto.fracionado
+                      ? `${produto.estoque_kg || 0} sacos`
+                      : `${produto.estoque || 0} un`}
                   </td>
 
                   <td>
+                    {produto.promocao ? (
+                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        ✅ Em promoção
+                      </span>
+                    ) : (
+                      <span className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm">
+                        Normal
+                      </span>
+                    )}
+                  </td>
 
+                  <td>
                     <div className="flex gap-2 justify-center">
-
                       <button
                         onClick={() => {
                           setProdutoEditando(produto);
@@ -179,24 +165,16 @@ return (
                       >
                         Excluir
                       </button>
-
                     </div>
-
                   </td>
-
                 </tr>
-
               ))
-
             )}
-
           </tbody>
-
         </table>
-
       </div>
 
-           <ProductModal
+      <ProductModal
         open={modalOpen}
         produto={produtoEditando}
         onClose={() => {

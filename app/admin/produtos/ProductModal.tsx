@@ -10,6 +10,9 @@ export interface Produto {
   categoria: string;
   preco: number;
   estoque: number;
+  estoque_kg?: number;
+  peso_saco?: number;
+  gramas?: number;
   imagem: string;
   descricao: string;
   promocao: boolean;
@@ -37,21 +40,42 @@ export default function ProductModal({
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
   const [promocao, setPromocao] = useState(false);
-const [fracionado, setFracionado] = useState(false);
+  const [fracionado, setFracionado] = useState(false);
+  const [pesoSaco, setPesoSaco] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (produto) {
+      setNome(produto.nome || "");
+      setCategoria(produto.categoria || "");
+      setPreco(String(produto.preco || ""));
+      setImagem(produto.imagem || "");
+      setDescricao(produto.descricao || "");
+      setPromocao(produto.promocao || false);
+      setFracionado(produto.fracionado || false);
+      
+      // Se fracionado, carrega de estoque_kg; se não, de estoque
+      if (produto.fracionado) {
+        setEstoque(String(produto.estoque_kg || ""));
+        setPesoSaco(String(produto.peso_saco || ""));
+      } else {
+        setEstoque(String(produto.estoque || ""));
+        setPesoSaco("");
+      }
+    } else {
+      setNome("");
+      setCategoria("");
+      setPreco("");
+      setImagem("");
+      setEstoque("");
+      setDescricao("");
+      setPromocao(false);
+      setFracionado(false);
+      setPesoSaco("");
+    }
+  }, [produto, open]);
 
-  if (produto) {
-    setNome(produto.nome || "");
-    setCategoria(produto.categoria || "");
-    setPreco(String(produto.preco || ""));
-    setImagem(produto.imagem || "");
-    setEstoque(String(produto.estoque || ""));
-    setDescricao(produto.descricao || "");
-    setPromocao(produto.promocao || false);
-    setFracionado(produto.fracionado || false);
-  } else {
+  function limparFormulario() {
     setNome("");
     setCategoria("");
     setPreco("");
@@ -60,206 +84,186 @@ const [fracionado, setFracionado] = useState(false);
     setDescricao("");
     setPromocao(false);
     setFracionado(false);
-  }
-}, [produto, open]);
-
-  function limparFormulario() {
-
-    setNome("");
-    setCategoria("");
-    setPreco("");
-    setImagem("");
-    setEstoque("");
-    setDescricao("");
-    setPromocao(false);
-setFracionado(false);
+    setPesoSaco("");
   }
 
   if (!open) return null;
 
-async function salvarProduto() {
-
-  if (!nome || !categoria || !preco) {
-    alert("Preencha os campos obrigatórios.");
-    return;
-  }
-
-  try {
-
-    setLoading(true);
-
-   const dados = {
-  nome,
-  categoria,
-  preco: Number(preco),
-  imagem,
-
-  estoque: fracionado ? 0 : Number(estoque || 0),
-
-  estoque_kg: fracionado
-    ? Number(estoque || 0)
-    : 0,
-
-  peso_saco: fracionado
-    ? Number(estoque || 0)
-    : 0,
-
-  descricao,
-  promocao,
-  fracionado,
-};
-
-    if (produto?.id) {
-
-      const { error } = await supabase
-        .from("produtos")
-        .update(dados)
-        .eq("id", produto.id);
-
-      if (error) throw error;
-
-      alert("Produto atualizado com sucesso!");
-
-    } else {
-
-      const { error } = await supabase
-        .from("produtos")
-        .insert(dados);
-
-      if (error) throw error;
-
-      alert("Produto cadastrado com sucesso!");
-
+  async function salvarProduto() {
+    if (!nome || !categoria || !preco) {
+      alert("Preencha os campos obrigatórios.");
+      return;
     }
 
-    limparFormulario();
+    if (fracionado && !pesoSaco) {
+      alert("Para produto fracionado, informe o peso do saco.");
+      return;
+    }
 
-    onSaved();
+    try {
+      setLoading(true);
 
-    onClose();
+      const dados = {
+        nome,
+        categoria,
+        preco: Number(preco),
+        imagem,
+        estoque: fracionado ? 0 : Number(estoque || 0),
+        estoque_kg: fracionado ? Number(estoque || 0) : 0,
+        peso_saco: fracionado ? Number(pesoSaco || 0) : 0,
+        descricao,
+        promocao,
+        fracionado,
+      };
 
-  } catch (err: any) {
+      if (produto?.id) {
+        const { error } = await supabase
+          .from("produtos")
+          .update(dados)
+          .eq("id", produto.id);
 
-    alert(err.message);
+        if (error) throw error;
 
-  } finally {
+        alert("Produto atualizado com sucesso!");
+      } else {
+        const { error } = await supabase
+          .from("produtos")
+          .insert(dados);
 
-    setLoading(false);
+        if (error) throw error;
 
+        alert("Produto cadastrado com sucesso!");
+      }
+
+      limparFormulario();
+      onSaved();
+      onClose();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-}
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl p-8 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-3xl font-bold mb-6">
+          {produto ? "Editar Produto" : "Novo Produto"}
+        </h2>
 
-return (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
-    <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl p-8 max-h-[90vh] overflow-y-auto">
-
-      <h2 className="text-3xl font-bold mb-6">
-        {produto ? "Editar Produto" : "Novo Produto"}
-      </h2>
-
-      <div className="space-y-5">
-
-        <input
-          type="text"
-          placeholder="Nome do produto"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          className="w-full border rounded-lg p-3"
-        />
-
-        <input
-          type="text"
-          placeholder="Categoria"
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-          className="w-full border rounded-lg p-3"
-        />
-
-        <input
-          type="number"
-          placeholder="Preço"
-          value={preco}
-          onChange={(e) => setPreco(e.target.value)}
-          className="w-full border rounded-lg p-3"
-        />
-
-        <ImageUpload
-          value={imagem}
-          onChange={setImagem}
-        />
-
-        <input
-          type="number"
-          placeholder="Estoque"
-          value={estoque}
-          onChange={(e) => setEstoque(e.target.value)}
-          className="w-full border rounded-lg p-3"
-        />
-
-        <textarea
-          placeholder="Descrição"
-          rows={5}
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          className="w-full border rounded-lg p-3"
-        />
-
-        <label className="flex items-center gap-3">
-
+        <div className="space-y-5">
           <input
-            type="checkbox"
-            checked={promocao}
-            onChange={(e) => setPromocao(e.target.checked)}
+            type="text"
+            placeholder="Nome do produto"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="w-full border rounded-lg p-3"
           />
 
-          Produto em promoção
+          <input
+            type="text"
+            placeholder="Categoria"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="w-full border rounded-lg p-3"
+          />
 
-        </label>
+          <input
+            type="number"
+            placeholder="Preço"
+            value={preco}
+            onChange={(e) => setPreco(e.target.value)}
+            className="w-full border rounded-lg p-3"
+          />
 
-<label className="flex items-center gap-3">
+          <ImageUpload
+            value={imagem}
+            onChange={setImagem}
+          />
 
-  <input
-    type="checkbox"
-    checked={fracionado}
-    onChange={(e) => setFracionado(e.target.checked)}
-  />
+          <label className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50">
+            <input
+              type="checkbox"
+              checked={fracionado}
+              onChange={(e) => setFracionado(e.target.checked)}
+              className="w-5 h-5 cursor-pointer"
+            />
+            <span className="font-semibold">Produto vendido fracionado (kg)</span>
+          </label>
 
-  Produto vendido fracionado (kg)
+          {fracionado ? (
+            <>
+              <input
+                type="number"
+                placeholder="Peso do saco (ex: 1 para 1kg, 2 para 2kg)"
+                value={pesoSaco}
+                onChange={(e) => setPesoSaco(e.target.value)}
+                className="w-full border rounded-lg p-3 bg-yellow-50"
+              />
+              <input
+                type="number"
+                placeholder="Quantidade de sacos em estoque"
+                value={estoque}
+                onChange={(e) => setEstoque(e.target.value)}
+                className="w-full border rounded-lg p-3"
+              />
+              <p className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
+                💡 Se você tiver 10 sacos de 2kg, coloque: Peso = 2kg, Estoque = 10
+              </p>
+            </>
+          ) : (
+            <input
+              type="number"
+              placeholder="Estoque (unidades)"
+              value={estoque}
+              onChange={(e) => setEstoque(e.target.value)}
+              className="w-full border rounded-lg p-3"
+            />
+          )}
 
-</label>
+          <textarea
+            placeholder="Descrição"
+            rows={5}
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            className="w-full border rounded-lg p-3"
+          />
 
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={promocao}
+              onChange={(e) => setPromocao(e.target.checked)}
+            />
+            <span>Produto em promoção</span>
+          </label>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-8">
+          <button
+            onClick={() => {
+              limparFormulario();
+              onClose();
+            }}
+            className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 transition"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={salvarProduto}
+            disabled={loading}
+            className="px-5 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition disabled:opacity-50"
+          >
+            {loading
+              ? "Salvando..."
+              : produto
+              ? "Atualizar Produto"
+              : "Salvar Produto"}
+          </button>
+        </div>
       </div>
-
-      <div className="flex justify-end gap-3 mt-8">
-
-        <button
-          onClick={() => {
-            limparFormulario();
-            onClose();
-          }}
-          className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 transition"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={salvarProduto}
-          disabled={loading}
-          className="px-5 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition disabled:opacity-50"
-        >
-          {loading
-            ? "Salvando..."
-            : produto
-            ? "Atualizar Produto"
-            : "Salvar Produto"}
-        </button>
-
-      </div>
-
     </div>
-
-  </div>
-);
+  );
 }
