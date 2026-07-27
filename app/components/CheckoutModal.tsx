@@ -73,8 +73,8 @@ export default function CheckoutModal({
     setLoading(true);
 
     try {
-
-      const { data: pedido, error } = await supabase
+      // INSERE PEDIDO - SEM .single()
+      const { data: pedidoData, error: erroPedido } = await supabase
         .from("pedidos")
         .insert({
           cliente,
@@ -90,11 +90,20 @@ export default function CheckoutModal({
           total,
           status: "PENDENTE",
         })
-        .select()
-        .single();
+        .select();
 
-      if (error) throw error;
+      if (erroPedido) {
+        console.error("Erro ao inserir pedido:", erroPedido);
+        throw new Error(`Erro ao criar pedido: ${erroPedido.message}`);
+      }
 
+      if (!pedidoData || pedidoData.length === 0) {
+        throw new Error("Pedido não foi criado");
+      }
+
+      const pedido = pedidoData[0];
+
+      // INSERE ITENS DO PEDIDO
       const itens = cart.map((item) => {
         if (item.fracionado) {
           return {
@@ -119,8 +128,12 @@ export default function CheckoutModal({
         .from("pedido_itens")
         .insert(itens);
 
-      if (erroItens) throw erroItens;
+      if (erroItens) {
+        console.error("Erro ao inserir itens:", erroItens);
+        throw new Error(`Erro ao adicionar itens: ${erroItens.message}`);
+      }
 
+      // MONTA MENSAGEM DO WHATSAPP
       const listaProdutos = cart
         .map((item) => {
           let qtyLabel = "";
@@ -139,8 +152,7 @@ export default function CheckoutModal({
         })
         .join("\n\n");
 
-      const mensagem =
-`🐶 *EA CASA DE RAÇÃO*
+      const mensagem = `🐶 *EA CASA DE RAÇÃO*
 
 📦 Pedido Nº ${pedido.id}
 
@@ -154,92 +166,66 @@ ${telefone}
 ${tipoEntrega}
 
 ${
-tipoEntrega === "ENTREGA"
-? `📍 Endereço:
+  tipoEntrega === "ENTREGA"
+    ? `📍 Endereço:
 ${endereco}, ${numero}
 Bairro: ${bairro}
 ${complemento ? `Complemento: ${complemento}` : ""}`
-: "🏪 Retirada na Loja"
+    : "🏪 Retirada na Loja"
 }
 
 💳 Pagamento:
 ${pagamento}
 
-${
-pagamento === "Dinheiro" && troco
-? `💵 Troco para: R$ ${troco}`
-: ""
-}
+${pagamento === "Dinheiro" && troco ? `💵 Troco para: R$ ${troco}` : ""}
 
-🛒 Produtos
+🛒 Produtos:
 
 ${listaProdutos}
 
 ----------------------------
 
-💰 TOTAL
+💰 TOTAL: R$ ${total.toFixed(2)}
 
-R$ ${total.toFixed(2)}
+${observacao ? `📝 Observação:\n${observacao}` : ""}`;
 
-${
-observacao
-? `📝 Observação:
+      const telefoneLoja = "5571993887651";
 
-${observacao}`
-: ""
-}`;
+      window.open(
+        `https://wa.me/${telefoneLoja}?text=${encodeURIComponent(mensagem)}`,
+        "_blank"
+      );
 
-     const telefoneLoja = "5571993887651";
+      // LIMPA FORM
+      clearCart();
+      setCliente("");
+      setTelefone("");
+      setEndereco("");
+      setNumero("");
+      setBairro("");
+      setComplemento("");
+      setTroco("");
+      setObservacao("");
+      setPagamento("PIX");
+      setTipoEntrega("ENTREGA");
 
-window.open(
-  `https://wa.me/${telefoneLoja}?text=${encodeURIComponent(mensagem)}`,
-  "_blank"
-);
-
-clearCart();
-
-setCliente("");
-setTelefone("");
-setEndereco("");
-setNumero("");
-setBairro("");
-setComplemento("");
-setTroco("");
-setObservacao("");
-setPagamento("PIX");
-setTipoEntrega("ENTREGA");
-
-alert("Pedido enviado com sucesso!");
-
-onClose();
-
+      alert("Pedido enviado com sucesso! Número: " + pedido.id);
+      onClose();
     } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao enviar pedido";
 
-  const message =
-    err instanceof Error
-      ? err.message
-      : "Erro ao enviar pedido";
-
-  console.error(err);
-  alert(message);
-
-} finally {
-
-  setLoading(false);
-
-}
-
+      console.error("Erro completo:", err);
+      alert(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-
       <div className="bg-white rounded-xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
-
-        <h2 className="text-2xl font-bold mb-6">
-          Finalizar Pedido
-        </h2>
+        <h2 className="text-2xl font-bold mb-6">Finalizar Pedido</h2>
 
         <input
           className="border rounded-lg w-full p-3 mb-3"
@@ -253,79 +239,65 @@ onClose();
           placeholder="Telefone *"
           value={telefone}
           onChange={(e) => {
-  const valor = e.target.value
-    .replace(/\D/g, "")
-    .replace(/(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .slice(0, 15);
+            const valor = e.target.value
+              .replace(/\D/g, "")
+              .replace(/(\d{2})(\d)/, "($1) $2")
+              .replace(/(\d{5})(\d)/, "$1-$2")
+              .slice(0, 15);
 
-  setTelefone(valor);
-}}
+            setTelefone(valor);
+          }}
         />
 
-        <label className="font-bold">
-          Tipo do Pedido
-        </label>
+        <label className="font-bold">Tipo do Pedido</label>
 
         <select
           className="border rounded-lg w-full p-3 mt-2 mb-5"
           value={tipoEntrega}
-          onChange={(e)=>setTipoEntrega(e.target.value)}
+          onChange={(e) => setTipoEntrega(e.target.value)}
         >
-          <option value="ENTREGA">
-            Entrega
-          </option>
-
-          <option value="RETIRADA">
-            Retirar na Loja
-          </option>
-
+          <option value="ENTREGA">Entrega</option>
+          <option value="RETIRADA">Retirar na Loja</option>
         </select>
 
         {tipoEntrega === "ENTREGA" && (
-
           <>
-
             <input
               className="border rounded-lg w-full p-3 mb-3"
               placeholder="Endereço"
               value={endereco}
-              onChange={(e)=>setEndereco(e.target.value)}
+              onChange={(e) => setEndereco(e.target.value)}
             />
 
             <input
               className="border rounded-lg w-full p-3 mb-3"
               placeholder="Número"
               value={numero}
-              onChange={(e)=>setNumero(e.target.value)}
+              onChange={(e) => setNumero(e.target.value)}
             />
 
             <input
               className="border rounded-lg w-full p-3 mb-3"
               placeholder="Bairro"
               value={bairro}
-              onChange={(e)=>setBairro(e.target.value)}
+              onChange={(e) => setBairro(e.target.value)}
             />
 
             <input
               className="border rounded-lg w-full p-3 mb-5"
               placeholder="Complemento (Opcional)"
               value={complemento}
-              onChange={(e)=>setComplemento(e.target.value)}
+              onChange={(e) => setComplemento(e.target.value)}
             />
-
           </>
-
         )}
 
-        <label className="font-bold">
-          Forma de Pagamento
-        </label>
+        <label className="font-bold">Forma de Pagamento</label>
 
         <select
           className="border rounded-lg w-full p-3 mt-2 mb-4"
           value={pagamento}
-          onChange={(e)=>setPagamento(e.target.value)}
+          onChange={(e) => setPagamento(e.target.value)}
         >
           <option value="PIX">PIX</option>
           <option value="Cartão">Cartão</option>
@@ -333,14 +305,12 @@ onClose();
         </select>
 
         {pagamento === "Dinheiro" && (
-
           <input
             className="border rounded-lg w-full p-3 mb-4"
             placeholder="Troco para quanto?"
             value={troco}
-            onChange={(e)=>setTroco(e.target.value)}
+            onChange={(e) => setTroco(e.target.value)}
           />
-
         )}
 
         <textarea
@@ -348,16 +318,13 @@ onClose();
           rows={4}
           placeholder="Observações"
           value={observacao}
-          onChange={(e)=>setObservacao(e.target.value)}
+          onChange={(e) => setObservacao(e.target.value)}
         />
 
         <div className="border rounded-xl p-4 bg-gray-50 mb-5">
+          <h3 className="font-bold text-lg mb-3">Resumo do Pedido</h3>
 
-          <h3 className="font-bold text-lg mb-3">
-            Resumo do Pedido
-          </h3>
-
-          {cart.map((item)=>{
+          {cart.map((item) => {
             let qtyLabel = "";
             let subtotal = 0;
 
@@ -371,18 +338,12 @@ onClose();
             }
 
             return (
-              <div
-                key={item.id}
-                className="flex justify-between mb-2"
-              >
+              <div key={item.id} className="flex justify-between mb-2">
                 <span>
                   {qtyLabel} {item.nome}
                 </span>
 
-                <span>
-                  R$ {subtotal.toFixed(2)}
-                </span>
-
+                <span>R$ {subtotal.toFixed(2)}</span>
               </div>
             );
           })}
@@ -390,19 +351,12 @@ onClose();
           <hr className="my-3" />
 
           <div className="flex justify-between text-xl font-bold text-green-700">
-
             <span>Total</span>
-
-            <span>
-              R$ {total.toFixed(2)}
-            </span>
-
+            <span>R$ {total.toFixed(2)}</span>
           </div>
-
         </div>
 
         <div className="flex gap-3">
-
           <button
             onClick={onClose}
             disabled={loading}
@@ -416,17 +370,10 @@ onClose();
             disabled={loading}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold disabled:opacity-50"
           >
-            {loading
-              ? "Enviando..."
-              : "Enviar Pedido"}
+            {loading ? "Enviando..." : "Enviar Pedido"}
           </button>
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }
