@@ -7,6 +7,8 @@ type Product = {
   preco: number;
   imagem: string;
   estoque: number;
+  estoque_kg: number;
+  fracionado: boolean;
   promocao: boolean;
 };
 

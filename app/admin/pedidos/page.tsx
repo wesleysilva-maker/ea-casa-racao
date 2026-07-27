@@ -92,7 +92,7 @@
         return;
       }
 
-    console.log(data);
+    console.log("DADOS DO SUPABASE:", JSON.stringify(data, null, 2));
   console.log(JSON.stringify(data, null, 2));
 
       setPedidoAtual(pedido);

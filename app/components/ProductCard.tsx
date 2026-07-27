@@ -21,15 +21,14 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { addToCart } = useCart();
-const disponivel = product.fracionado
-  ? product.estoque_kg > 0
-  : product.estoque > 0;
+
+  const disponivel = product.fracionado
+    ? product.estoque_kg > 0
+    : product.estoque > 0;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition flex flex-col">
-
       <div className="relative w-full h-56">
-
         <Image
           src={product.imagem}
           alt={product.nome}
@@ -50,30 +49,24 @@ const disponivel = product.fracionado
             </span>
           </div>
         )}
-
       </div>
 
       <div className="p-5 flex-1 flex flex-col">
+        <h3 className="text-xl font-bold">{product.nome}</h3>
 
-        <h3 className="text-xl font-bold">
-          {product.nome}
-        </h3>
-
-        <p className="text-gray-500">
-          {product.categoria}
-        </p>
+        <p className="text-gray-500">{product.categoria}</p>
 
         <p className="text-3xl font-black text-orange-600 mt-4">
           R$ {product.preco.toFixed(2)}
         </p>
 
         <p className="text-sm text-gray-500 mt-2">
-{product.fracionado
-  ? `Disponível: ${product.estoque_kg} kg`
-  : `Estoque: ${product.estoque}`}
-</p>
+          {product.fracionado
+            ? `Disponível: ${product.estoque_kg} kg`
+            : `Estoque: ${product.estoque}`}
+        </p>
+
         {disponivel ? (
-        
           <button
             onClick={() => addToCart(product)}
             className="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold mt-6"
@@ -88,9 +81,7 @@ const disponivel = product.fracionado
             Produto Esgotado
           </button>
         )}
-
       </div>
-
     </div>
   );
 }
