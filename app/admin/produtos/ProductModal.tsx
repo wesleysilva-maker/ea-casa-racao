@@ -5,12 +5,12 @@ import { supabase } from "@/lib/supabase";
 import ImageUpload from "./ImageUpload";
 
 export interface Produto {
-  id?: number;
+  id: number;
   nome: string;
   categoria: string;
   preco: number;
-  imagem: string;
   estoque: number;
+  imagem: string;
   descricao: string;
   promocao: boolean;
   fracionado: boolean;
@@ -33,7 +33,6 @@ export default function ProductModal({
   const [nome, setNome] = useState("");
   const [categoria, setCategoria] = useState("");
   const [preco, setPreco] = useState("");
-  const [pesoSaco, setPesoSaco] = useState("");   
   const [imagem, setImagem] = useState("");
   const [estoque, setEstoque] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -43,23 +42,26 @@ const [fracionado, setFracionado] = useState(false);
 
   useEffect(() => {
 
-    if (produto) {
-
-      setNome(produto.nome);
-      setCategoria(produto.categoria);
-      setPreco(String(produto.preco));
-      setImagem(produto.imagem);
-      setEstoque(String(produto.estoque));
-      setDescricao(produto.descricao);
-      setPromocao(produto.promocao);
-setFracionado(produto.fracionado ?? false);
-    } else {
-
-      limparFormulario();
-
-    }
-
-  }, [produto, open]);
+  if (produto) {
+    setNome(produto.nome || "");
+    setCategoria(produto.categoria || "");
+    setPreco(String(produto.preco || ""));
+    setImagem(produto.imagem || "");
+    setEstoque(String(produto.estoque || ""));
+    setDescricao(produto.descricao || "");
+    setPromocao(produto.promocao || false);
+    setFracionado(produto.fracionado || false);
+  } else {
+    setNome("");
+    setCategoria("");
+    setPreco("");
+    setImagem("");
+    setEstoque("");
+    setDescricao("");
+    setPromocao(false);
+    setFracionado(false);
+  }
+}, [produto, open]);
 
   function limparFormulario() {
 
@@ -86,12 +88,22 @@ async function salvarProduto() {
 
     setLoading(true);
 
-    const dados = {
+   const dados = {
   nome,
   categoria,
   preco: Number(preco),
   imagem,
-  estoque: Number(estoque || 0),
+
+  estoque: fracionado ? 0 : Number(estoque || 0),
+
+  estoque_kg: fracionado
+    ? Number(estoque || 0)
+    : 0,
+
+  peso_saco: fracionado
+    ? Number(estoque || 0)
+    : 0,
+
   descricao,
   promocao,
   fracionado,
@@ -172,14 +184,6 @@ return (
           onChange={(e) => setPreco(e.target.value)}
           className="w-full border rounded-lg p-3"
         />
-        
-        <input
-  type="number"
-  placeholder="Peso do saco (kg)"
-  value={pesoSaco}
-  onChange={(e) => setPesoSaco(e.target.value)}
-  className="w-full border rounded-lg p-3"
-/>
 
         <ImageUpload
           value={imagem}

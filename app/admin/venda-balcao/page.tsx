@@ -31,7 +31,7 @@ export default function VendaBalcaoPage() {
     setClientes(data || []);
   }
 
-  async function buscarProdutos() {
+ async function buscarProdutos() {
   const { data, error } = await supabase
     .from("produtos")
     .select("*")
@@ -44,10 +44,11 @@ export default function VendaBalcaoPage() {
 
   const produtosFormatados = (data || []).map((p) => ({
     ...p,
-    estoque: Number(p.estoque),
-    estoque_kg: Number(p.estoque_kg || 0),
-    peso_saco: Number(p.peso_saco || 0),
-    fracionado: p.fracionado,
+    estoque: Number(p.estoque ?? 0),
+    estoque_kg: Number(p.estoque_kg ?? 0),
+    peso_saco: Number(p.peso_saco ?? 0),
+    preco: Number(p.preco ?? 0),
+    fracionado: Boolean(p.fracionado),
   }));
 
   setProdutos(produtosFormatados);
@@ -58,36 +59,30 @@ function adicionarCarrinho(produto: any) {
   // Produto fracionado
   if (produto.fracionado) {
 
-    const entrada = prompt("Quantas gramas deseja vender? (Digite apenas números. Ex: 500)");
-console.log("Entrada:", entrada);
+    const entrada = prompt("Quantas gramas deseja vender?");
 
-const gramas = Number(entrada?.replace(",", "."));
+    if (entrada === null) return;
 
-console.log("Gramas:", gramas);
+    const gramas = Number(entrada.replace(",", "."));
 
-if (isNaN(gramas) || gramas <= 0) {
-  alert("Quantidade inválida.");
-  return;
-}
+    if (isNaN(gramas) || gramas <= 0) {
+      alert("Quantidade inválida.");
+      return;
+    }
 
     const kg = gramas / 1000;
 
-console.log("Gramas:", gramas);
-console.log("KG:", kg);
-console.log("Estoque KG:", produto.estoque_kg);
-console.log(produto);
-
-if (kg > produto.estoque_kg) {
-  alert("Estoque insuficiente.");
-  return;
+    if (kg > Number(produto.estoque_kg)) {
+      alert("Estoque insuficiente.");
+      return;
     }
 
     setCarrinho([
       ...carrinho,
       {
         ...produto,
-        quantidade: kg,          // usado para calcular o valor
-        gramas: gramas,          // usado para exibir
+        quantidade: kg,
+        gramas,
         fracionado: true,
       },
     ]);
@@ -96,25 +91,18 @@ if (kg > produto.estoque_kg) {
   }
 
   // Produto normal
-  const existe = carrinho.find((p) => p.id === produto.id);
-
-  if (existe) {
-    setCarrinho(
-      carrinho.map((p) =>
-        p.id === produto.id
-          ? { ...p, quantidade: p.quantidade + 1 }
-          : p
-      )
-    );
-  } else {
-    setCarrinho([
-      ...carrinho,
-      {
-        ...produto,
-        quantidade: 1,
-      },
-    ]);
+  if (produto.estoque <= 0) {
+    alert("Produto sem estoque.");
+    return;
   }
+
+  setCarrinho([
+    ...carrinho,
+    {
+      ...produto,
+      quantidade: 1,
+    },
+  ]);
 }
 
   function aumentar(id: number) {
@@ -208,23 +196,23 @@ if (erroItens) {
 // BAIXA O ESTOQUE
 for (const produto of carrinho) {
 
-  // Produto fracionado
   if (produto.fracionado) {
 
     await supabase
       .from("produtos")
       .update({
-        estoque_kg: Number(produto.estoque_kg) - Number(produto.quantidade),
+        estoque_kg:
+          Number(produto.estoque_kg) - Number(produto.quantidade),
       })
       .eq("id", produto.id);
 
   } else {
 
-    // Produto normal
     await supabase
       .from("produtos")
       .update({
-        estoque: Number(produto.estoque) - Number(produto.quantidade),
+        estoque:
+          Number(produto.estoque) - Number(produto.quantidade),
       })
       .eq("id", produto.id);
 
