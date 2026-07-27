@@ -1,3 +1,5 @@
+"use client";
+
 import ProductCard from "./ProductCard";
 
 type Product = {
@@ -18,15 +20,8 @@ interface Props {
 
 export default function ProductGrid({ products }: Props) {
   return (
-    <section
-      id="produtos"
-      className="max-w-7xl mx-auto px-6 py-16"
-    >
-      <h2 className="text-4xl font-black text-center mb-12">
-        Produtos em Destaque
-      </h2>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <section className="px-4 py-12 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.length > 0 ? (
           products.map((product) => (
             <ProductCard
@@ -35,9 +30,9 @@ export default function ProductGrid({ products }: Props) {
             />
           ))
         ) : (
-          <p className="col-span-full text-center text-gray-500 text-lg">
-            Nenhum produto encontrado.
-          </p>
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500 text-lg">Nenhum produto encontrado</p>
+          </div>
         )}
       </div>
     </section>
