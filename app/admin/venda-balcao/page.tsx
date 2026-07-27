@@ -56,10 +56,12 @@ export default function VendaBalcaoPage() {
 
 function adicionarCarrinho(produto: any) {
 
-  // Produto fracionado
+  // PRODUTO FRACIONADO
   if (produto.fracionado) {
 
-    const entrada = prompt("Quantas gramas deseja vender?");
+    const entrada = prompt(
+      `Quantas gramas deseja vender?\n\nEstoque: ${produto.estoque_kg} kg`
+    );
 
     if (entrada === null) return;
 
@@ -77,12 +79,27 @@ function adicionarCarrinho(produto: any) {
       return;
     }
 
-    setCarrinho([
-      ...carrinho,
+    // preço por KG
+    const precoKg = Number(produto.preco) / Number(produto.peso_saco);
+
+    // valor vendido
+    const valorVenda = precoKg * kg;
+
+    setCarrinho((old) => [
+      ...old,
       {
         ...produto,
+
         quantidade: kg,
+
         gramas,
+
+        preco: valorVenda,
+
+        preco_original: produto.preco,
+
+        preco_kg: precoKg,
+
         fracionado: true,
       },
     ]);
@@ -90,42 +107,117 @@ function adicionarCarrinho(produto: any) {
     return;
   }
 
-  // Produto normal
+  // PRODUTO NORMAL
+
   if (produto.estoque <= 0) {
     alert("Produto sem estoque.");
     return;
   }
 
-  setCarrinho([
-    ...carrinho,
-    {
-      ...produto,
-      quantidade: 1,
-    },
-  ]);
-}
+  const existe = carrinho.find((p) => !p.fracionado && p.id === produto.id);
 
-  function aumentar(id: number) {
+  if (existe) {
+
     setCarrinho(
       carrinho.map((p) =>
-        p.id === id
-          ? { ...p, quantidade: p.quantidade + 1 }
+        p.id === produto.id
+          ? {
+              ...p,
+              quantidade: p.quantidade + 1,
+            }
           : p
       )
     );
+
+  } else {
+
+    setCarrinho([
+      ...carrinho,
+      {
+        ...produto,
+        quantidade: 1,
+      },
+    ]);
+
   }
 
-  function diminuir(id: number) {
-    setCarrinho(
-      carrinho
-        .map((p) =>
-          p.id === id
-            ? { ...p, quantidade: p.quantidade - 1 }
-            : p
-        )
-        .filter((p) => p.quantidade > 0)
-    );
-  }
+}
+  function aumentar(id: number) {
+
+  setCarrinho(
+    carrinho.map((p) => {
+
+      if (p.id !== id) return p;
+
+      if (p.fracionado) {
+
+        const novasGramas = p.gramas + 100;
+
+        const novoKg = novasGramas / 1000;
+
+        if (novoKg > Number(p.estoque_kg)) {
+          alert("Estoque insuficiente.");
+          return p;
+        }
+
+        return {
+          ...p,
+          gramas: novasGramas,
+          quantidade: novoKg,
+          preco: p.preco_kg * novoKg,
+        };
+
+      }
+
+      return {
+        ...p,
+        quantidade: p.quantidade + 1,
+      };
+
+    })
+  );
+
+}
+
+ function diminuir(id: number) {
+
+  setCarrinho(
+
+    carrinho
+      .map((p) => {
+
+        if (p.id !== id) return p;
+
+        if (p.fracionado) {
+
+          const novasGramas = p.gramas - 100;
+
+          if (novasGramas <= 0) return null;
+
+          const novoKg = novasGramas / 1000;
+
+          return {
+            ...p,
+            gramas: novasGramas,
+            quantidade: novoKg,
+            preco: p.preco_kg * novoKg,
+          };
+
+        }
+
+        if (p.quantidade <= 1) return null;
+
+        return {
+          ...p,
+          quantidade: p.quantidade - 1,
+        };
+
+      })
+      .filter(Boolean)
+
+  );
+
+}
 
   function remover(id: number) {
     setCarrinho(
@@ -133,13 +225,20 @@ function adicionarCarrinho(produto: any) {
     );
   }
 
-  const total = carrinho.reduce(
-  (acc, item) =>
-    acc + item.preco * item.quantidade,
-  0
-);
+ const total = carrinho.reduce((acc, item) => {
+
+  if (item.fracionado) {
+
+    return acc + Number(item.preco);
+
+  }
+
+  return acc + Number(item.preco) * Number(item.quantidade);
+
+}, 0);
 
 async function finalizarVenda() {
+
   if (!clienteSelecionado) {
     alert("Selecione um cliente.");
     return;
@@ -150,7 +249,6 @@ async function finalizarVenda() {
     return;
   }
 
-  // Salva o pedido
   const { data: pedido, error } = await supabase
     .from("pedidos")
     .insert({
@@ -163,7 +261,7 @@ async function finalizarVenda() {
       pagamento: "BALCÃO",
       tipo_entrega: "RETIRADA",
       status: "CONCLUÍDO",
-      total: total,
+      total,
       troco: "",
       observacao: "Venda Balcão",
     })
@@ -172,63 +270,76 @@ async function finalizarVenda() {
 
   if (error) {
     console.error(error);
-    alert("Erro ao salvar o pedido.");
+    alert("Erro ao salvar pedido.");
     return;
   }
-const itens = carrinho.map((produto) => ({
-  pedido_id: pedido.id,
-  produto_id: produto.id,
-  quantidade: produto.quantidade,
-  preco: produto.preco,
-}));
 
- // Salva os itens do pedido
-const { error: erroItens } = await supabase
-  .from("pedido_itens")
-  .insert(itens);
+  const itens = carrinho.map((produto) => ({
 
-if (erroItens) {
-  console.error(erroItens);
-  alert("Erro ao salvar os itens.");
-  return;
-}
+    pedido_id: pedido.id,
 
-// BAIXA O ESTOQUE
-for (const produto of carrinho) {
+    produto_id: produto.id,
 
-  if (produto.fracionado) {
+    quantidade: produto.quantidade,
 
-    await supabase
-      .from("produtos")
-      .update({
-        estoque_kg:
-          Number(produto.estoque_kg) - Number(produto.quantidade),
-      })
-      .eq("id", produto.id);
+    preco: produto.preco,
 
-  } else {
+  }));
 
-    await supabase
-      .from("produtos")
-      .update({
-        estoque:
-          Number(produto.estoque) - Number(produto.quantidade),
-      })
-      .eq("id", produto.id);
+  const { error: erroItens } = await supabase
+    .from("pedido_itens")
+    .insert(itens);
+
+  if (erroItens) {
+    console.error(erroItens);
+    alert("Erro ao salvar itens.");
+    return;
+  }
+
+  // BAIXA O ESTOQUE
+
+  for (const produto of carrinho) {
+
+    if (produto.fracionado) {
+
+      const novoEstoque =
+        Number(produto.estoque_kg) -
+        Number(produto.quantidade);
+
+      await supabase
+        .from("produtos")
+        .update({
+          estoque_kg: novoEstoque,
+        })
+        .eq("id", produto.id);
+
+    } else {
+
+      const novoEstoque =
+        Number(produto.estoque) -
+        Number(produto.quantidade);
+
+      await supabase
+        .from("produtos")
+        .update({
+          estoque: novoEstoque,
+        })
+        .eq("id", produto.id);
+
+    }
 
   }
 
+  alert("Venda realizada com sucesso!");
+
+  setCarrinho([]);
+  setClienteSelecionado(null);
+  setPesquisaCliente("");
+  setPesquisaProduto("");
+
+  buscarProdutos();
+
 }
-
-// Limpa a tela
-setCarrinho([]);
-setClienteSelecionado(null);
-setPesquisaCliente("");
-setPesquisaProduto("");
-
-alert("Venda realizada com sucesso!");
-}
-
 return (
     <div className="p-8">
 
@@ -349,9 +460,27 @@ return (
 
                   <br />
 
-                  <span className="text-orange-600 font-bold">
-                    R$ {Number(produto.preco).toFixed(2)}
-                  </span>
+                  <span className="text-gray-500">
+
+  {produto.fracionado ? (
+
+    <>
+      {produto.gramas} g
+      <br />
+      <strong className="text-green-600">
+        R$ {Number(produto.preco).toFixed(2)}
+      </strong>
+    </>
+
+  ) : (
+
+    <>
+      R$ {Number(produto.preco).toFixed(2)}
+    </>
+
+  )}
+
+</span>
 
                 </div>
 
@@ -386,10 +515,17 @@ return (
               >
 
                 <div>
+<strong>
 
-                  <strong>
-                    {produto.nome}
-                  </strong>
+  {produto.nome}
+
+  {produto.fracionado && (
+    <span className="text-orange-600 ml-2">
+      (Fracionado)
+    </span>
+  )}
+
+</strong>
 
                   <br />
 
@@ -408,10 +544,12 @@ return (
                     -
                   </button>
 
-                <strong>
+              <strong>
+
   {produto.fracionado
     ? `${produto.gramas} g`
-    : produto.quantidade}
+    : `${produto.quantidade} un`}
+
 </strong>
 
                   <button
@@ -438,17 +576,17 @@ return (
 
         )}
 
-        <div className="border-t mt-6 pt-6 flex justify-between items-center">
+       <div className="border-t mt-6 pt-6 flex justify-between items-center">
 
-          <span className="text-2xl font-bold">
-            Total
-          </span>
+  <span className="text-2xl font-bold">
+    Total
+  </span>
 
-          <span className="text-3xl font-bold text-orange-600">
-            R$ {total.toFixed(2)}
-          </span>
+  <span className="text-3xl font-bold text-orange-600">
+    R$ {total.toFixed(2)}
+  </span>
 
-        </div>
+</div>
 
         <button
   onClick={finalizarVenda}
