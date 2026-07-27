@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCart } from "../context/CartContext";
+import { useState } from "react";
 
 type Product = {
   id: number;
@@ -21,10 +22,21 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { addToCart } = useCart();
+  const [quantidadeGramas, setQuantidadeGramas] = useState(100);
 
   const disponivel = product.fracionado
     ? product.estoque_kg > 0
     : product.estoque > 0;
+
+  const maxGramas = (product.estoque_kg || 0) * 1000;
+
+  const handleAddToCart = () => {
+    if (product.fracionado) {
+      addToCart(product, quantidadeGramas);
+    } else {
+      addToCart(product);
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition flex flex-col">
@@ -57,7 +69,7 @@ export default function ProductCard({ product }: Props) {
         <p className="text-gray-500">{product.categoria}</p>
 
         <p className="text-3xl font-black text-orange-600 mt-4">
-          R$ {product.preco.toFixed(2)}
+          R$ {product.preco.toFixed(2)}/kg
         </p>
 
         <p className="text-sm text-gray-500 mt-2">
@@ -66,9 +78,37 @@ export default function ProductCard({ product }: Props) {
             : `Estoque: ${product.estoque}`}
         </p>
 
+        {product.fracionado && disponivel && (
+          <div className="mt-3">
+            <label className="text-sm text-gray-600 block mb-2">
+              Quantidade:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="100"
+                step="100"
+                max={maxGramas}
+                value={quantidadeGramas}
+                onChange={(e) =>
+                  setQuantidadeGramas(
+                    Math.max(100, Math.min(maxGramas, parseInt(e.target.value) || 100))
+                  )
+                }
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                placeholder="Gramas"
+              />
+              <span className="text-sm text-gray-600 flex items-center">g</span>
+            </div>
+            <p className="text-xs text-orange-600 mt-2">
+              R$ {((quantidadeGramas / 1000) * product.preco).toFixed(2)}
+            </p>
+          </div>
+        )}
+
         {disponivel ? (
           <button
-            onClick={() => addToCart(product)}
+            onClick={handleAddToCart}
             className="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold mt-6"
           >
             Adicionar ao Carrinho

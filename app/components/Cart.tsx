@@ -18,7 +18,8 @@ export default function Cart() {
 
   const total = cart.reduce((acc, item) => {
     if (item.fracionado) {
-      return acc + item.preco * (item.quantidadeKg || 0);
+      const gramas = item.quantidadeGramas || 0;
+      return acc + item.preco * (gramas / 1000);
     }
     return acc + item.preco * (item.quantidade || 0);
   }, 0);
@@ -89,8 +90,19 @@ export default function Cart() {
             </div>
           ) : (
             cart.map((item) => {
-              const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
-              const subtotal = item.preco * qty;
+              let qty: number | string = 0;
+              let qtyLabel = "";
+              let subtotal = 0;
+
+              if (item.fracionado) {
+                qty = item.quantidadeGramas || 0;
+                qtyLabel = `${qty}g`;
+                subtotal = item.preco * (qty / 1000);
+              } else {
+                qty = item.quantidade || 0;
+                qtyLabel = `${qty}x`;
+                subtotal = item.preco * qty;
+              }
 
               return (
                 <div
@@ -117,7 +129,7 @@ export default function Cart() {
                       </button>
 
                       <span className="font-bold">
-                        {item.fracionado ? `${qty}kg` : qty}
+                        {qtyLabel}
                       </span>
 
                       <button

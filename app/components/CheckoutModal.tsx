@@ -34,7 +34,8 @@ export default function CheckoutModal({
 
   const total = cart.reduce((acc, item) => {
     if (item.fracionado) {
-      return acc + item.preco * (item.quantidadeKg || 0);
+      const gramas = item.quantidadeGramas || 0;
+      return acc + item.preco * (gramas / 1000);
     }
     return acc + item.preco * (item.quantidade || 0);
   }, 0);
@@ -95,14 +96,23 @@ export default function CheckoutModal({
       if (error) throw error;
 
       const itens = cart.map((item) => {
-        const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
-        return {
-          pedido_id: pedido.id,
-          produto_id: item.id,
-          quantidade: item.fracionado ? null : item.quantidade,
-          quantidade_kg: item.fracionado ? item.quantidadeKg : null,
-          preco: item.preco,
-        };
+        if (item.fracionado) {
+          return {
+            pedido_id: pedido.id,
+            produto_id: item.id,
+            quantidade: null,
+            quantidade_gramas: item.quantidadeGramas || 0,
+            preco: item.preco,
+          };
+        } else {
+          return {
+            pedido_id: pedido.id,
+            produto_id: item.id,
+            quantidade: item.quantidade || 0,
+            quantidade_gramas: null,
+            preco: item.preco,
+          };
+        }
       });
 
       const { error: erroItens } = await supabase
@@ -113,9 +123,18 @@ export default function CheckoutModal({
 
       const listaProdutos = cart
         .map((item) => {
-          const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
-          const subtotal = item.preco * qty;
-          const qtyLabel = item.fracionado ? `${qty}kg` : `${qty}x`;
+          let qtyLabel = "";
+          let subtotal = 0;
+
+          if (item.fracionado) {
+            const gramas = item.quantidadeGramas || 0;
+            qtyLabel = `${gramas}g`;
+            subtotal = item.preco * (gramas / 1000);
+          } else {
+            qtyLabel = `${item.quantidade || 0}x`;
+            subtotal = item.preco * (item.quantidade || 0);
+          }
+
           return `• ${qtyLabel} ${item.nome}\nR$ ${subtotal.toFixed(2)}`;
         })
         .join("\n\n");
@@ -190,10 +209,8 @@ setObservacao("");
 setPagamento("PIX");
 setTipoEntrega("ENTREGA");
 
-onClose();
-
 alert("Pedido enviado com sucesso!");
-    
+
 onClose();
 
     } catch (err: unknown) {
@@ -341,9 +358,18 @@ onClose();
           </h3>
 
           {cart.map((item)=>{
-            const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
-            const qtyLabel = item.fracionado ? `${qty}kg` : `${qty}x`;
-            const subtotal = item.preco * qty;
+            let qtyLabel = "";
+            let subtotal = 0;
+
+            if (item.fracionado) {
+              const gramas = item.quantidadeGramas || 0;
+              qtyLabel = `${gramas}g`;
+              subtotal = item.preco * (gramas / 1000);
+            } else {
+              qtyLabel = `${item.quantidade || 0}x`;
+              subtotal = item.preco * (item.quantidade || 0);
+            }
+
             return (
               <div
                 key={item.id}
@@ -356,6 +382,7 @@ onClose();
                 <span>
                   R$ {subtotal.toFixed(2)}
                 </span>
+
               </div>
             );
           })}
