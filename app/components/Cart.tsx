@@ -16,10 +16,12 @@ export default function Cart() {
   const [open, setOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const total = cart.reduce(
-    (acc, item) => acc + item.preco * item.quantidade,
-    0
-  );
+  const total = cart.reduce((acc, item) => {
+    if (item.fracionado) {
+      return acc + item.preco * (item.quantidadeKg || 0);
+    }
+    return acc + item.preco * (item.quantidade || 0);
+  }, 0);
 
   return (
     <>
@@ -86,53 +88,58 @@ export default function Cart() {
               Carrinho vazio.
             </div>
           ) : (
-            cart.map((item) => (
-              <div
-                key={item.id}
-                className="border-b py-4 flex justify-between gap-3"
-              >
-                <div className="flex-1">
+            cart.map((item) => {
+              const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
+              const subtotal = item.preco * qty;
 
-                  <h4 className="font-bold">
-                    {item.nome}
-                  </h4>
+              return (
+                <div
+                  key={item.id}
+                  className="border-b py-4 flex justify-between gap-3"
+                >
+                  <div className="flex-1">
 
-                  <p className="text-orange-600 font-bold mt-1">
-                    R$ {(item.preco * item.quantidade).toFixed(2)}
-                  </p>
+                    <h4 className="font-bold">
+                      {item.nome}
+                    </h4>
 
-                  <div className="flex items-center gap-3 mt-3">
+                    <p className="text-orange-600 font-bold mt-1">
+                      R$ {subtotal.toFixed(2)}
+                    </p>
 
-                    <button
-                      onClick={() => decreaseQuantity(item.id)}
-                      className="w-8 h-8 rounded-full bg-gray-200"
-                    >
-                      -
-                    </button>
+                    <div className="flex items-center gap-3 mt-3">
 
-                    <span className="font-bold">
-                      {item.quantidade}
-                    </span>
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        className="w-8 h-8 rounded-full bg-gray-200"
+                      >
+                        -
+                      </button>
 
-                    <button
-                      onClick={() => increaseQuantity(item.id)}
-                      className="w-8 h-8 rounded-full bg-green-600 text-white"
-                    >
-                      +
-                    </button>
+                      <span className="font-bold">
+                        {item.fracionado ? `${qty}kg` : qty}
+                      </span>
+
+                      <button
+                        onClick={() => increaseQuantity(item.id)}
+                        className="w-8 h-8 rounded-full bg-green-600 text-white"
+                      >
+                        +
+                      </button>
+
+                    </div>
 
                   </div>
 
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="text-red-500 text-2xl"
+                  >
+                    ×
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  className="text-red-500 text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
 
         </div>
