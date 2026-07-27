@@ -32,10 +32,12 @@ export default function CheckoutModal({
 
   const [observacao, setObservacao] = useState("");
 
-  const total = cart.reduce(
-    (acc, item) => acc + item.preco * item.quantidade,
-    0
-  );
+  const total = cart.reduce((acc, item) => {
+    if (item.fracionado) {
+      return acc + item.preco * (item.quantidadeKg || 0);
+    }
+    return acc + item.preco * (item.quantidade || 0);
+  }, 0);
 
   if (!open) return null;
 
@@ -92,12 +94,16 @@ export default function CheckoutModal({
 
       if (error) throw error;
 
-      const itens = cart.map((item) => ({
-        pedido_id: pedido.id,
-        produto_id: item.id,
-        quantidade: item.quantidade,
-        preco: item.preco,
-      }));
+      const itens = cart.map((item) => {
+        const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
+        return {
+          pedido_id: pedido.id,
+          produto_id: item.id,
+          quantidade: item.fracionado ? null : item.quantidade,
+          quantidade_kg: item.fracionado ? item.quantidadeKg : null,
+          preco: item.preco,
+        };
+      });
 
       const { error: erroItens } = await supabase
         .from("pedido_itens")
@@ -106,10 +112,12 @@ export default function CheckoutModal({
       if (erroItens) throw erroItens;
 
       const listaProdutos = cart
-        .map(
-          (item) =>
-            `• ${item.quantidade}x ${item.nome}\nR$ ${(item.preco * item.quantidade).toFixed(2)}`
-        )
+        .map((item) => {
+          const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
+          const subtotal = item.preco * qty;
+          const qtyLabel = item.fracionado ? `${qty}kg` : `${qty}x`;
+          return `• ${qtyLabel} ${item.nome}\nR$ ${subtotal.toFixed(2)}`;
+        })
         .join("\n\n");
 
       const mensagem =
@@ -332,23 +340,25 @@ onClose();
             Resumo do Pedido
           </h3>
 
-          {cart.map((item)=>(
-            <div
-              key={item.id}
-              className="flex justify-between mb-2"
-            >
-              <span>
+          {cart.map((item)=>{
+            const qty = item.fracionado ? (item.quantidadeKg || 0) : (item.quantidade || 0);
+            const qtyLabel = item.fracionado ? `${qty}kg` : `${qty}x`;
+            const subtotal = item.preco * qty;
+            return (
+              <div
+                key={item.id}
+                className="flex justify-between mb-2"
+              >
+                <span>
+                  {qtyLabel} {item.nome}
+                </span>
 
-                {item.quantidade}x {item.nome}
-              </span>
-
-              <span>
-                R$ {(item.preco * item.quantidade).toFixed(2)}
-              </span>
-
-            </div>
-
-          ))}
+                <span>
+                  R$ {subtotal.toFixed(2)}
+                </span>
+              </div>
+            );
+          })}
 
           <hr className="my-3" />
 
