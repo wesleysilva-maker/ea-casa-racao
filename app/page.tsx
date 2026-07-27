@@ -45,7 +45,7 @@ export default function Home() {
       return;
     }
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
     setProducts(data || []);
   }
 

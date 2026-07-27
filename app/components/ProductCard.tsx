@@ -72,7 +72,6 @@ const disponivel = product.fracionado
   ? `Disponível: ${product.estoque_kg} kg`
   : `Estoque: ${product.estoque}`}
 </p>
-
         {disponivel ? (
         
           <button
