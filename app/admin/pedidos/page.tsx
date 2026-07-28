@@ -147,15 +147,20 @@ Obrigado pela preferência! 🐾`;
   <meta charset="UTF-8">
   <title>Pedido ${pedidoSelecionado.id}</title>
   <style>
-    body {
-      font-family: 'Courier New', monospace;
-      width: 80mm;
+    * {
       margin: 0;
       padding: 0;
+    }
+    body {
+      font-family: 'Courier New', monospace;
       background: white;
+      display: flex;
+      justify-content: center;
+      padding: 10mm;
     }
     .container {
-      width: 100%;
+      width: 80mm;
+      background: white;
       padding: 5mm;
       box-sizing: border-box;
     }
