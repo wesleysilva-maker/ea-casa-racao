@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CartProvider } from "./context/CartContext";
 import "./globals.css";
 import UpdateNotification from "./components/UpdateNotification";
 
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <UpdateNotification />
-        {children}
+        <CartProvider>
+          <UpdateNotification />
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
