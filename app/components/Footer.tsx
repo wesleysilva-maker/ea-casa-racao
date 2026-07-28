@@ -14,7 +14,7 @@ export default function Footer() {
 
         <div className="mt-8 space-y-2">
 
-          <p>📍 Lauro de Freitas - BA</p>
+          <p>📍 R. Queira Deus, 741 - Portão</p>
 
           <p>📞 (71) 99388-7651</p>
 
