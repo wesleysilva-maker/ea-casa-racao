@@ -73,17 +73,29 @@ export default function CheckoutModal({
     setLoading(true);
 
     try {
-      // INSERE PEDIDO - SEM .single()
+      console.log("1. Iniciando criação de pedido...");
+      console.log("Dados do pedido:", {
+        cliente,
+        telefone,
+        tipo_entrega: tipoEntrega,
+        endereco,
+        numero,
+        bairro,
+        pagamento,
+        total,
+      });
+
+      // INSERE PEDIDO
       const { data: pedidoData, error: erroPedido } = await supabase
         .from("pedidos")
         .insert({
           cliente,
           telefone,
           tipo_entrega: tipoEntrega,
-          endereco,
-          numero,
-          bairro,
-          complemento,
+          endereco: tipoEntrega === "ENTREGA" ? endereco : null,
+          numero: tipoEntrega === "ENTREGA" ? numero : null,
+          bairro: tipoEntrega === "ENTREGA" ? bairro : null,
+          complemento: tipoEntrega === "ENTREGA" ? complemento : null,
           pagamento,
           troco,
           observacao,
@@ -92,46 +104,58 @@ export default function CheckoutModal({
         })
         .select();
 
+      console.log("2. Resposta do insert pedido:", { pedidoData, erroPedido });
+
       if (erroPedido) {
-        console.error("Erro ao inserir pedido:", erroPedido);
+        console.error("ERRO ao criar pedido:", erroPedido);
         throw new Error(`Erro ao criar pedido: ${erroPedido.message}`);
       }
 
       if (!pedidoData || pedidoData.length === 0) {
-        throw new Error("Pedido não foi criado");
+        throw new Error("Pedido não foi criado (resposta vazia)");
       }
 
       const pedido = pedidoData[0];
+      console.log("3. Pedido criado com sucesso, ID:", pedido.id);
 
       // INSERE ITENS DO PEDIDO
       const itens = cart.map((item) => {
         if (item.fracionado) {
+          const gramas = item.quantidadeGramas || 0;
+          const precoTotal = item.preco * (gramas / 1000);
           return {
             pedido_id: pedido.id,
             produto_id: item.id,
-            quantidade: null,
-            quantidade_gramas: item.quantidadeGramas || 0,
-            preco: item.preco,
+            quantidade: 0,
+            quantidade_gramas: gramas,
+            preco: precoTotal,
           };
         } else {
+          const precoTotal = item.preco * (item.quantidade || 1);
           return {
             pedido_id: pedido.id,
             produto_id: item.id,
             quantidade: item.quantidade || 0,
-            quantidade_gramas: null,
-            preco: item.preco,
+            quantidade_gramas: 0,
+            preco: precoTotal,
           };
         }
       });
+
+      console.log("5. Itens a inserir:", itens);
 
       const { error: erroItens } = await supabase
         .from("pedido_itens")
         .insert(itens);
 
+      console.log("6. Resposta do insert itens:", { erroItens });
+
       if (erroItens) {
-        console.error("Erro ao inserir itens:", erroItens);
+        console.error("ERRO ao inserir itens:", erroItens);
         throw new Error(`Erro ao adicionar itens: ${erroItens.message}`);
       }
+
+      console.log("7. Itens inseridos com sucesso");
 
       // MONTA MENSAGEM DO WHATSAPP
       const listaProdutos = cart
@@ -189,6 +213,8 @@ ${listaProdutos}
 
 ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
 
+      console.log("8. Mensagem WhatsApp montada");
+
       const telefoneLoja = "5571993887651";
 
       window.open(
@@ -209,13 +235,15 @@ ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
       setPagamento("PIX");
       setTipoEntrega("ENTREGA");
 
-      alert("Pedido enviado com sucesso! Número: " + pedido.id);
+      alert("✅ Pedido enviado com sucesso! Número: " + pedido.id);
       onClose();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Erro ao enviar pedido";
+        err instanceof Error ? err.message : "Erro desconhecido ao enviar pedido";
 
-      console.error("Erro completo:", err);
+      console.error("❌ ERRO COMPLETO:", err);
+      console.error("Stack:", err instanceof Error ? err.stack : "sem stack");
+      
       alert(message);
     } finally {
       setLoading(false);
