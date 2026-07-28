@@ -10,6 +10,7 @@ type Product = {
   imagem: string;
   estoque?: number;
   estoque_kg?: number;
+  peso_saco?: number;
   fracionado?: boolean;
   promocao?: boolean;
 };
@@ -58,7 +59,9 @@ export function CartProvider({
       }
 
       if (product.fracionado && quantidadeGramas) {
-        return [...old, { ...product, quantidadeGramas }];
+        // CALCULA PREÇO POR KG PARA FRACIONADO
+        const precoPorKg = product.preco / (product.peso_saco || 1);
+        return [...old, { ...product, quantidadeGramas, preco: precoPorKg }];
       }
 
       return [...old, { ...product, quantidade: 1 }];
