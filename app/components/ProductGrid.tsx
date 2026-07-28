@@ -10,6 +10,7 @@ type Product = {
   imagem: string;
   estoque: number;
   estoque_kg: number;
+  peso_saco: number;
   fracionado: boolean;
   promocao: boolean;
 };

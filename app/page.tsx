@@ -12,7 +12,6 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import Cart from "@/app/components/Cart";
 
 import { supabase } from "@/lib/supabase";
-
 type Product = {
   id: number;
   nome: string;
@@ -21,6 +20,7 @@ type Product = {
   imagem: string;
   estoque: number;
   estoque_kg: number;
+  peso_saco: number;  // ← VERIFICA SE TEM ISSO
   fracionado: boolean;
   promocao: boolean;
 };

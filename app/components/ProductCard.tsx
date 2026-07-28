@@ -12,6 +12,7 @@ type Product = {
   imagem: string;
   estoque: number;
   estoque_kg: number;
+  peso_saco: number;
   fracionado: boolean;
   promocao: boolean;
 };
@@ -29,6 +30,16 @@ export default function ProductCard({ product }: Props) {
     : product.estoque > 0;
 
   const maxGramas = (product.estoque_kg || 0) * 1000;
+
+  // CALCULA PREÇO POR KG PARA FRACIONADO
+  const precoPorKg = product.fracionado
+    ? product.preco / (product.peso_saco || 1)
+    : product.preco;
+
+  // CALCULA PREÇO FINAL DA QUANTIDADE SELECIONADA
+  const precoFinal = product.fracionado
+    ? (quantidadeGramas / 1000) * precoPorKg
+    : product.preco;
 
   const handleAddToCart = () => {
     if (product.fracionado) {
@@ -68,9 +79,15 @@ export default function ProductCard({ product }: Props) {
 
         <p className="text-gray-500">{product.categoria}</p>
 
-        <p className="text-3xl font-black text-orange-600 mt-4">
-          R$ {product.preco.toFixed(2)}/kg
-        </p>
+        {product.fracionado ? (
+          <p className="text-3xl font-black text-orange-600 mt-4">
+            R$ {precoPorKg.toFixed(2)}/kg
+          </p>
+        ) : (
+          <p className="text-3xl font-black text-orange-600 mt-4">
+            R$ {product.preco.toFixed(2)}
+          </p>
+        )}
 
         <p className="text-sm text-gray-500 mt-2">
           {product.fracionado
@@ -100,8 +117,8 @@ export default function ProductCard({ product }: Props) {
               />
               <span className="text-sm text-gray-600 flex items-center">g</span>
             </div>
-            <p className="text-xs text-orange-600 mt-2">
-              R$ {((quantidadeGramas / 1000) * product.preco).toFixed(2)}
+            <p className="text-sm font-bold text-orange-600 mt-2">
+              R$ {precoFinal.toFixed(2)}
             </p>
           </div>
         )}
