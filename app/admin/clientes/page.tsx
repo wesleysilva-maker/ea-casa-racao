@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-type Cliente = {
+interface Cliente {
   id: number;
   nome: string;
   telefone: string;
@@ -12,22 +12,21 @@ type Cliente = {
   bairro: string;
   complemento: string;
   created_at: string;
-};
+}
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [pesquisa, setPesquisa] = useState("");
+  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [mostrarModal, setMostrarModal] = useState(false);
-
-  const [novoCliente, setNovoCliente] = useState({
-    nome: "",
-    telefone: "",
-    endereco: "",
-    numero: "",
-    bairro: "",
-    complemento: "",
-  });
+  // Formulário
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [complemento, setComplemento] = useState("");
 
   useEffect(() => {
     carregarClientes();
@@ -37,7 +36,7 @@ export default function ClientesPage() {
     const { data, error } = await supabase
       .from("clientes")
       .select("*")
-      .order("nome", { ascending: true });
+      .order("nome");
 
     if (error) {
       console.error(error);
@@ -47,241 +46,237 @@ export default function ClientesPage() {
     setClientes(data || []);
   }
 
-  async function salvarCliente() {
-    const { error } = await supabase
-      .from("clientes")
-      .insert([
-        {
-          nome: novoCliente.nome,
-          telefone: novoCliente.telefone,
-          endereco: novoCliente.endereco,
-          numero: novoCliente.numero,
-          bairro: novoCliente.bairro,
-          complemento: novoCliente.complemento,
-        },
-      ]);
+  function abrirModalEditar(cliente: Cliente) {
+    setClienteSelecionado(cliente);
+    setNome(cliente.nome);
+    setTelefone(cliente.telefone);
+    setEndereco(cliente.endereco);
+    setNumero(cliente.numero);
+    setBairro(cliente.bairro);
+    setComplemento(cliente.complemento);
+    setModalAberto(true);
+  }
 
-    if (error) {
-      alert(error.message);
+  function abrirModalNovo() {
+    setClienteSelecionado(null);
+    setNome("");
+    setTelefone("");
+    setEndereco("");
+    setNumero("");
+    setBairro("");
+    setComplemento("");
+    setModalAberto(true);
+  }
+
+  async function salvarCliente() {
+    if (!nome.trim() || !telefone.trim()) {
+      alert("Nome e telefone são obrigatórios");
       return;
     }
 
-    alert("Cliente cadastrado com sucesso!");
+    setLoading(true);
 
-    setMostrarModal(false);
+    try {
+      if (clienteSelecionado) {
+        // EDITAR
+        const { error } = await supabase
+          .from("clientes")
+          .update({
+            nome,
+            telefone,
+            endereco,
+            numero,
+            bairro,
+            complemento,
+          })
+          .eq("id", clienteSelecionado.id);
 
-    setNovoCliente({
-      nome: "",
-      telefone: "",
-      endereco: "",
-      numero: "",
-      bairro: "",
-      complemento: "",
-    });
+        if (error) throw error;
+        alert("✅ Cliente atualizado!");
+      } else {
+        // NOVO
+        const { error } = await supabase.from("clientes").insert({
+          nome,
+          telefone,
+          endereco,
+          numero,
+          bairro,
+          complemento,
+        });
 
-    carregarClientes();
+        if (error) throw error;
+        alert("✅ Cliente criado!");
+      }
+
+      carregarClientes();
+      setModalAberto(false);
+    } catch (err: any) {
+      alert("❌ Erro: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const clientesFiltrados = clientes.filter((cliente) => {
-    return (
-      cliente.nome.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      (cliente.telefone || "").includes(pesquisa)
-    );
-  });
+  async function excluirCliente(cliente: Cliente) {
+    if (!confirm(`Tem certeza que quer excluir "${cliente.nome}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("clientes")
+        .delete()
+        .eq("id", cliente.id);
+
+      if (error) throw error;
+
+      alert("✅ Cliente excluído!");
+      carregarClientes();
+    } catch (err: any) {
+      alert("❌ Erro: " + err.message);
+    }
+  }
 
   return (
     <div className="p-8">
-
       <div className="flex justify-between items-center mb-8">
-
-        <h1 className="text-4xl font-bold text-orange-600">
-          👥 Clientes
-        </h1>
-
+        <h1 className="text-3xl font-bold">👥 Clientes</h1>
         <button
-          onClick={() => setMostrarModal(true)}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-bold"
+          onClick={abrirModalNovo}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold"
         >
           + Novo Cliente
         </button>
-
       </div>
 
-      <input
-        type="text"
-        placeholder="Pesquisar cliente..."
-        value={pesquisa}
-        onChange={(e) => setPesquisa(e.target.value)}
-        className="w-full border rounded-xl p-4 mb-8"
-      />
-
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-
+      {/* TABELA */}
+      <div className="overflow-x-auto rounded-xl border shadow">
         <table className="w-full">
-
-          <thead className="bg-orange-600 text-white">
-
+          <thead className="bg-orange-100">
             <tr>
-              <th className="text-left p-4">Nome</th>
-              <th className="text-left p-4">Telefone</th>
-              <th className="text-left p-4">Endereço</th>
+              <th className="p-4 text-left">Nome</th>
+              <th className="text-left">Telefone</th>
+              <th className="text-left">Endereço</th>
+              <th className="text-left">Bairro</th>
+              <th className="text-center">Ações</th>
             </tr>
-
           </thead>
 
           <tbody>
-
-            {clientesFiltrados.length === 0 ? (
+            {clientes.length === 0 ? (
               <tr>
-                <td
-                  colSpan={3}
-                  className="text-center p-8 text-gray-500"
-                >
+                <td colSpan={5} className="text-center py-10">
                   Nenhum cliente cadastrado.
                 </td>
               </tr>
             ) : (
-              clientesFiltrados.map((cliente) => (
-                <tr
-                  key={cliente.id}
-                  className="border-t hover:bg-gray-50"
-                >
-                  <td className="p-4 font-semibold">
-                    {cliente.nome}
-                  </td>
-
-                  <td className="p-4">
-                    {cliente.telefone}
-                  </td>
-
-                  <td className="p-4">
+              clientes.map((cliente) => (
+                <tr key={cliente.id} className="border-t hover:bg-orange-50">
+                  <td className="p-3 font-bold">{cliente.nome}</td>
+                  <td>{cliente.telefone}</td>
+                  <td>
                     {cliente.endereco}, {cliente.numero}
-                    <br />
-                    <span className="text-gray-500 text-sm">
-                      {cliente.bairro}
-                    </span>
+                  </td>
+                  <td>{cliente.bairro}</td>
+                  <td className="text-center">
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => abrirModalEditar(cliente)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        ✏️ Editar
+                      </button>
+
+                      <button
+                        onClick={() => excluirCliente(cliente)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        🗑️ Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             )}
-
           </tbody>
-
         </table>
-
       </div>
 
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-          <div className="bg-white rounded-xl p-8 w-full max-w-xl">
-
+      {/* MODAL */}
+      {modalAberto && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6">
-              Novo Cliente
+              {clienteSelecionado ? "✏️ Editar Cliente" : "➕ Novo Cliente"}
             </h2>
 
-            <div className="space-y-4">
-
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <input
-                className="w-full border rounded-lg p-3"
-                placeholder="Nome"
-                value={novoCliente.nome}
-                onChange={(e) =>
-                  setNovoCliente({
-                    ...novoCliente,
-                    nome: e.target.value,
-                  })
-                }
+                type="text"
+                placeholder="Nome *"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className="border rounded-lg p-3 col-span-2"
               />
 
               <input
-                className="w-full border rounded-lg p-3"
-                placeholder="Telefone"
-                value={novoCliente.telefone}
-                onChange={(e) =>
-                  setNovoCliente({
-                    ...novoCliente,
-                    telefone: e.target.value,
-                  })
-                }
+                type="text"
+                placeholder="Telefone *"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="border rounded-lg p-3"
               />
 
               <input
-                className="w-full border rounded-lg p-3"
+                type="text"
                 placeholder="Endereço"
-                value={novoCliente.endereco}
-                onChange={(e) =>
-                  setNovoCliente({
-                    ...novoCliente,
-                    endereco: e.target.value,
-                  })
-                }
+                value={endereco}
+                onChange={(e) => setEndereco(e.target.value)}
+                className="border rounded-lg p-3"
               />
 
-              <div className="grid grid-cols-2 gap-4">
-
-                <input
-                  className="border rounded-lg p-3"
-                  placeholder="Número"
-                  value={novoCliente.numero}
-                  onChange={(e) =>
-                    setNovoCliente({
-                      ...novoCliente,
-                      numero: e.target.value,
-                    })
-                  }
-                />
-
-                <input
-                  className="border rounded-lg p-3"
-                  placeholder="Bairro"
-                  value={novoCliente.bairro}
-                  onChange={(e) =>
-                    setNovoCliente({
-                      ...novoCliente,
-                      bairro: e.target.value,
-                    })
-                  }
-                />
-
-              </div>
+              <input
+                type="text"
+                placeholder="Número"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+                className="border rounded-lg p-3"
+              />
 
               <input
-                className="w-full border rounded-lg p-3"
+                type="text"
+                placeholder="Bairro"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+                className="border rounded-lg p-3"
+              />
+
+              <input
+                type="text"
                 placeholder="Complemento"
-                value={novoCliente.complemento}
-                onChange={(e) =>
-                  setNovoCliente({
-                    ...novoCliente,
-                    complemento: e.target.value,
-                  })
-                }
+                value={complemento}
+                onChange={(e) => setComplemento(e.target.value)}
+                className="border rounded-lg p-3 col-span-2"
               />
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-
+            <div className="flex gap-3">
               <button
-                onClick={() => setMostrarModal(false)}
-                className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400"
+                onClick={() => setModalAberto(false)}
+                className="flex-1 bg-gray-300 hover:bg-gray-400 py-3 rounded-lg font-bold"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={salvarCliente}
-                className="px-5 py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold"
+                disabled={loading}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold disabled:opacity-50"
               >
-                Salvar Cliente
+                {loading ? "Salvando..." : "Salvar"}
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
