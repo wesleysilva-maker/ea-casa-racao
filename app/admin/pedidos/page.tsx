@@ -141,34 +141,188 @@ Obrigado pela preferência! 🐾`;
     if (!pedidoSelecionado) return;
 
     const conteudo = `
-EA CASA DE RAÇÃO
-=====================================
-PEDIDO Nº ${pedidoSelecionado.id}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pedido ${pedidoSelecionado.id}</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      width: 80mm;
+      margin: 0;
+      padding: 0;
+      background: white;
+    }
+    .container {
+      width: 100%;
+      padding: 5mm;
+      box-sizing: border-box;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 1px dashed #000;
+      padding-bottom: 5mm;
+      margin-bottom: 5mm;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 2mm;
+    }
+    .loja-info {
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .section {
+      margin: 3mm 0;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .section-title {
+      font-weight: bold;
+      border-bottom: 1px dashed #000;
+      margin-bottom: 2mm;
+    }
+    .linha {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .produto {
+      margin-bottom: 3mm;
+      padding-bottom: 2mm;
+      border-bottom: 1px dotted #ccc;
+    }
+    .produto-nome {
+      font-weight: bold;
+      font-size: 11px;
+    }
+    .produto-detalhes {
+      font-size: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .total-section {
+      border-top: 1px dashed #000;
+      border-bottom: 1px dashed #000;
+      padding: 3mm 0;
+      margin: 3mm 0;
+      text-align: right;
+    }
+    .total-valor {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      margin-top: 5mm;
+      padding-top: 3mm;
+      border-top: 1px dashed #000;
+    }
+    .obrigado {
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 3mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">🐶 EA CASA DE RAÇÃO</div>
+      <div class="loja-info">
+        R. Queira Deus, 741 - Portão<br>
+        📞 (71) 99388-7651<br>
+        Instagram: @ea_casaderacao
+      </div>
+    </div>
 
-CLIENTE: ${pedidoSelecionado.cliente}
-TELEFONE: ${pedidoSelecionado.telefone}
-TIPO: ${pedidoSelecionado.tipo_entrega}
+    <!-- PEDIDO -->
+    <div class="section">
+      <div style="text-align: center; font-weight: bold; font-size: 13px;">
+        PEDIDO Nº ${pedidoSelecionado.id}
+      </div>
+    </div>
 
-ENDEREÇO:
-${pedidoSelecionado.endereco}, ${pedidoSelecionado.numero}
-${pedidoSelecionado.bairro}
-${pedidoSelecionado.complemento || ""}
+    <!-- CLIENTE -->
+    <div class="section">
+      <div class="section-title">CLIENTE</div>
+      <div>${pedidoSelecionado.cliente}</div>
+      <div>📞 ${pedidoSelecionado.telefone}</div>
+    </div>
 
-PAGAMENTO: ${pedidoSelecionado.pagamento}
-TOTAL: R$ ${pedidoSelecionado.total.toFixed(2)}
+    <!-- ENTREGA -->
+    <div class="section">
+      <div class="section-title">ENTREGA</div>
+      <div><strong>Tipo:</strong> ${pedidoSelecionado.tipo_entrega}</div>
+      ${
+        pedidoSelecionado.tipo_entrega === "ENTREGA"
+          ? `
+      <div><strong>Endereço:</strong></div>
+      <div>${pedidoSelecionado.endereco}, ${pedidoSelecionado.numero}</div>
+      <div>${pedidoSelecionado.bairro}</div>
+      ${pedidoSelecionado.complemento ? `<div>${pedidoSelecionado.complemento}</div>` : ""}
+      `
+          : "<div>RETIRADA NA LOJA</div>"
+      }
+    </div>
 
-PRODUTOS:
-${itens.map((item) => `- ${item.produtos.nome} x${item.quantidade}: R$ ${item.preco.toFixed(2)}`).join("\n")}
+    <!-- PRODUTOS -->
+    <div class="section">
+      <div class="section-title">PRODUTOS</div>
+      ${itens
+        .map(
+          (item) => `
+      <div class="produto">
+        <div class="produto-nome">${item.produtos.nome}</div>
+        <div class="produto-detalhes">
+          <span>Qtd: ${item.quantidade}</span>
+          <span>R$ ${item.preco.toFixed(2)}</span>
+        </div>
+      </div>
+      `
+        )
+        .join("")}
+    </div>
 
-STATUS: ${pedidoSelecionado.status}
-DATA: ${new Date(pedidoSelecionado.created_at).toLocaleDateString("pt-BR")}
-=====================================
+    <!-- TOTAL -->
+    <div class="total-section">
+      <div>TOTAL</div>
+      <div class="total-valor">R$ ${pedidoSelecionado.total.toFixed(2)}</div>
+    </div>
+
+    <!-- PAGAMENTO -->
+    <div class="section">
+      <div><strong>Pagamento:</strong> ${pedidoSelecionado.pagamento}</div>
+      ${pedidoSelecionado.troco ? `<div><strong>Troco:</strong> R$ ${pedidoSelecionado.troco}</div>` : ""}
+      ${pedidoSelecionado.observacao ? `<div><strong>Obs:</strong> ${pedidoSelecionado.observacao}</div>` : ""}
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="obrigado">OBRIGADO! 🐾</div>
+      <div style="margin-top: 2mm; font-size: 9px;">
+        ${new Date(pedidoSelecionado.created_at).toLocaleDateString("pt-BR")}<br>
+        ${new Date(pedidoSelecionado.created_at).toLocaleTimeString("pt-BR")}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
     `;
 
     const novaJanela = window.open("", "_blank");
     if (novaJanela) {
-      novaJanela.document.write(`<pre>${conteudo}</pre>`);
-      novaJanela.print();
+      novaJanela.document.write(conteudo);
     }
   }
 
