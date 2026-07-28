@@ -22,6 +22,20 @@ export default function Footer() {
 
         </div>
 
+        <div className="mt-12 pt-8 border-t border-gray-700">
+          <p className="text-xs text-gray-500">
+            Desenvolvido por Wesley Silva{" "}
+            <a
+              href="https://instagram.com/_weesleyyy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-500 hover:underline"
+            >
+              @_weesleyyy
+            </a>
+          </p>
+        </div>
+
       </div>
 
     </footer>

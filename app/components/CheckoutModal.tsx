@@ -95,7 +95,7 @@ export default function CheckoutModal({
 
       const pedido = pedidoData[0];
 
-      // INSERE ITENS DO PEDIDO - CORRIGIDO COM 0 EM VEZ DE NULL
+      // INSERE ITENS DO PEDIDO
       const itens = cart.map((item) => {
         if (item.fracionado) {
           const gramas = item.quantidadeGramas || 0;
@@ -256,6 +256,14 @@ ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
 
         {tipoEntrega === "ENTREGA" && (
           <>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
+              <p className="text-blue-700">
+                {total >= 30
+                  ? "✅ Frete grátis em Portão!"
+                  : `⚠️ Frete em Portão: R$ 5.00 (grátis acima de R$ 30) ou retire na loja`}
+              </p>
+            </div>
+
             <input
               className="border rounded-lg w-full p-3 mb-3"
               placeholder="Endereço"
