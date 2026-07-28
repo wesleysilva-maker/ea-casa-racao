@@ -16,20 +16,15 @@ export default function CheckoutModal({
   const { cart, clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
-
   const [cliente, setCliente] = useState("");
   const [telefone, setTelefone] = useState("");
-
   const [tipoEntrega, setTipoEntrega] = useState("ENTREGA");
-
   const [endereco, setEndereco] = useState("");
   const [numero, setNumero] = useState("");
   const [bairro, setBairro] = useState("");
   const [complemento, setComplemento] = useState("");
-
   const [pagamento, setPagamento] = useState("PIX");
   const [troco, setTroco] = useState("");
-
   const [observacao, setObservacao] = useState("");
 
   const total = cart.reduce((acc, item) => {
@@ -73,18 +68,6 @@ export default function CheckoutModal({
     setLoading(true);
 
     try {
-      console.log("1. Iniciando criação de pedido...");
-      console.log("Dados do pedido:", {
-        cliente,
-        telefone,
-        tipo_entrega: tipoEntrega,
-        endereco,
-        numero,
-        bairro,
-        pagamento,
-        total,
-      });
-
       // INSERE PEDIDO
       const { data: pedidoData, error: erroPedido } = await supabase
         .from("pedidos")
@@ -104,21 +87,15 @@ export default function CheckoutModal({
         })
         .select();
 
-      console.log("2. Resposta do insert pedido:", { pedidoData, erroPedido });
-
-      if (erroPedido) {
-        console.error("ERRO ao criar pedido:", erroPedido);
-        throw new Error(`Erro ao criar pedido: ${erroPedido.message}`);
-      }
-
-      if (!pedidoData || pedidoData.length === 0) {
-        throw new Error("Pedido não foi criado (resposta vazia)");
+      if (erroPedido || !pedidoData || pedidoData.length === 0) {
+        throw new Error(
+          erroPedido?.message || "Erro ao criar pedido"
+        );
       }
 
       const pedido = pedidoData[0];
-      console.log("3. Pedido criado com sucesso, ID:", pedido.id);
 
-      // INSERE ITENS DO PEDIDO
+      // INSERE ITENS DO PEDIDO - CORRIGIDO COM 0 EM VEZ DE NULL
       const itens = cart.map((item) => {
         if (item.fracionado) {
           const gramas = item.quantidadeGramas || 0;
@@ -142,20 +119,13 @@ export default function CheckoutModal({
         }
       });
 
-      console.log("5. Itens a inserir:", itens);
-
       const { error: erroItens } = await supabase
         .from("pedido_itens")
         .insert(itens);
 
-      console.log("6. Resposta do insert itens:", { erroItens });
-
       if (erroItens) {
-        console.error("ERRO ao inserir itens:", erroItens);
-        throw new Error(`Erro ao adicionar itens: ${erroItens.message}`);
+        throw new Error(erroItens.message || "Erro ao adicionar itens");
       }
-
-      console.log("7. Itens inseridos com sucesso");
 
       // MONTA MENSAGEM DO WHATSAPP
       const listaProdutos = cart
@@ -213,8 +183,6 @@ ${listaProdutos}
 
 ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
 
-      console.log("8. Mensagem WhatsApp montada");
-
       const telefoneLoja = "5571993887651";
 
       window.open(
@@ -222,7 +190,7 @@ ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
         "_blank"
       );
 
-      // LIMPA FORM
+      // LIMPA FORMULÁRIO
       clearCart();
       setCliente("");
       setTelefone("");
@@ -239,12 +207,10 @@ ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
       onClose();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Erro desconhecido ao enviar pedido";
+        err instanceof Error ? err.message : "Erro ao enviar pedido";
 
-      console.error("❌ ERRO COMPLETO:", err);
-      console.error("Stack:", err instanceof Error ? err.stack : "sem stack");
-      
-      alert(message);
+      console.error("Erro:", err);
+      alert("❌ " + message);
     } finally {
       setLoading(false);
     }
