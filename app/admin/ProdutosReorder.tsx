@@ -107,7 +107,7 @@ export default function ProdutosReorder() {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { distance: 8 }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
