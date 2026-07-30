@@ -177,7 +177,7 @@ export default function ClientesPage() {
                   </td>
                   <td>{cliente.bairro}</td>
                   <td className="text-center">
-                    <div className="flex gap-2 justify-center">
+                    <div className="flex gap-2 justify-center items-center">
                       <button
                         onClick={() => abrirModalEditar(cliente)}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"

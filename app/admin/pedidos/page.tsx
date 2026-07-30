@@ -44,7 +44,7 @@ export default function PedidosPage() {
     const { data, error } = await supabase
       .from("pedidos")
       .select("*")
-      .order("id", { ascending: false });
+      .order("ordem", { ascending: true });
 
     if (error) {
       console.error(error);

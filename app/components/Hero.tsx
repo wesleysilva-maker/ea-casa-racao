@@ -1,37 +1,41 @@
+"use client";
+
+import { ShoppingBag, MessageCircle } from "lucide-react";
+
 export default function Hero() {
   return (
-    <section className="bg-gradient-to-r from-orange-500 to-orange-700 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-14 md:py-24">
+    <section
+      className="relative min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url('/hero-banner.png')",
+      }}
+    >
+      {/* Escurece levemente para destacar os botões */}
+      <div className="absolute inset-0 bg-black/10" />
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight">
-          Tudo para seu Pet
-          <br />
-          em um só lugar 🐶
-        </h1>
+      {/* Botões */}
+      <div className="relative z-10 max-w-7xl mx-auto h-screen flex items-end lg:items-center px-6 pb-16 lg:pb-0">
 
-        <p className="mt-5 text-base sm:text-lg md:text-xl max-w-xl">
-          Rações, medicamentos, brinquedos, acessórios e muito mais para seu melhor amigo.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+        <div className="flex flex-wrap gap-4 lg:ml-10">
 
           <a
             href="#produtos"
-            className="w-full sm:w-auto text-center bg-white text-orange-600 px-8 py-4 rounded-xl font-bold hover:scale-105 transition"
+            className="flex items-center gap-2 bg-white hover:bg-gray-100 text-orange-600 font-bold px-7 py-4 rounded-xl shadow-xl"
           >
+            <ShoppingBag size={20} />
             Ver Produtos
           </a>
 
           <a
             href="https://wa.me/5571993887651"
             target="_blank"
-            className="w-full sm:w-auto text-center bg-green-600 px-8 py-4 rounded-xl font-bold hover:bg-green-700 transition"
+            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-7 py-4 rounded-xl font-bold shadow-xl"
           >
+            <MessageCircle size={20} />
             WhatsApp
           </a>
 
         </div>
-
       </div>
     </section>
   );

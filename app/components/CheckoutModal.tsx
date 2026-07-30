@@ -259,7 +259,7 @@ ${observacao ? `📝 Observação:\n${observacao}` : ""}`;
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
               <p className="text-blue-700">
                 {total >= 30
-                  ? "✅ Frete grátis em Portão!"
+                  ? "✅ Frete grátis em portão acima de 30 reais ou retire na loja!"
                   : `⚠️ Frete em Portão: R$ 5.00 (grátis acima de R$ 30) ou retire na loja`}
               </p>
             </div>

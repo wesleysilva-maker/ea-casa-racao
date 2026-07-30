@@ -14,7 +14,7 @@ export default function ProdutosPage() {
     const { data, error } = await supabase
       .from("produtos")
       .select("*")
-      .order("id", { ascending: false });
+     .order("ordem", { ascending: true });
 
     if (error) {
       console.error(error);
@@ -148,7 +148,7 @@ export default function ProdutosPage() {
                   </td>
 
                   <td>
-                    <div className="flex gap-2 justify-center">
+                    <div className="flex gap-2 justify-center items-center">
                       <button
                         onClick={() => {
                           setProdutoEditando(produto);
