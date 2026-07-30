@@ -22,6 +22,8 @@ export type CartItem = Product & {
 
 type CartContextType = {
   cart: CartItem[];
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   addToCart: (product: Product, quantidadeGramas?: number) => void;
   removeFromCart: (id: number) => void;
   increaseQuantity: (id: number) => void;
@@ -37,8 +39,12 @@ export function CartProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [open, setOpen] = useState(false);
 
   function addToCart(product: Product, quantidadeGramas?: number) {
+    // Abre automaticamente o carrinho
+    setOpen(true);
+
     setCart((old) => {
       const existe = old.find((item) => item.id === product.id);
 
@@ -46,25 +52,45 @@ export function CartProvider({
         if (product.fracionado && quantidadeGramas) {
           return old.map((item) =>
             item.id === product.id
-              ? { ...item, quantidadeGramas: (item.quantidadeGramas || 0) + quantidadeGramas }
-              : item
-          );
-        } else {
-          return old.map((item) =>
-            item.id === product.id
-              ? { ...item, quantidade: (item.quantidade || 0) + 1 }
+              ? {
+                  ...item,
+                  quantidadeGramas:
+                    (item.quantidadeGramas || 0) + quantidadeGramas,
+                }
               : item
           );
         }
+
+        return old.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                quantidade: (item.quantidade || 0) + 1,
+              }
+            : item
+        );
       }
 
       if (product.fracionado && quantidadeGramas) {
-        // CALCULA PREÇO POR KG PARA FRACIONADO
         const precoPorKg = product.preco / (product.peso_saco || 1);
-        return [...old, { ...product, quantidadeGramas, preco: precoPorKg }];
+
+        return [
+          ...old,
+          {
+            ...product,
+            quantidadeGramas,
+            preco: precoPorKg,
+          },
+        ];
       }
 
-      return [...old, { ...product, quantidade: 1 }];
+      return [
+        ...old,
+        {
+          ...product,
+          quantidade: 1,
+        },
+      ];
     });
   }
 
@@ -77,11 +103,18 @@ export function CartProvider({
       old.map((item) => {
         if (item.id === id) {
           if (item.fracionado) {
-            return { ...item, quantidadeGramas: (item.quantidadeGramas || 0) + 100 };
-          } else {
-            return { ...item, quantidade: (item.quantidade || 0) + 1 };
+            return {
+              ...item,
+              quantidadeGramas: (item.quantidadeGramas || 0) + 100,
+            };
           }
+
+          return {
+            ...item,
+            quantidade: (item.quantidade || 0) + 1,
+          };
         }
+
         return item;
       })
     );
@@ -91,19 +124,28 @@ export function CartProvider({
     setCart((old) =>
       old
         .map((item) => {
-          if (item.id === id) {
-            if (item.fracionado) {
-              return { ...item, quantidadeGramas: Math.max(0, (item.quantidadeGramas || 0) - 100) };
-            } else {
-              return { ...item, quantidade: Math.max(0, (item.quantidade || 0) - 1) };
-            }
+          if (item.id !== id) return item;
+
+          if (item.fracionado) {
+            return {
+              ...item,
+              quantidadeGramas: Math.max(
+                0,
+                (item.quantidadeGramas || 0) - 100
+              ),
+            };
           }
-          return item;
+
+          return {
+            ...item,
+            quantidade: Math.max(0, (item.quantidade || 0) - 1),
+          };
         })
         .filter((item) => {
           if (item.fracionado) {
             return (item.quantidadeGramas || 0) > 0;
           }
+
           return (item.quantidade || 0) > 0;
         })
     );
@@ -117,6 +159,8 @@ export function CartProvider({
     <CartContext.Provider
       value={{
         cart,
+        open,
+        setOpen,
         addToCart,
         removeFromCart,
         increaseQuantity,

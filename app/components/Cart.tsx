@@ -6,16 +6,16 @@ import CheckoutModal from "./CheckoutModal";
 
 export default function Cart() {
   const {
-    cart,
-    removeFromCart,
-    increaseQuantity,
-    decreaseQuantity,
-    clearCart,
-  } = useCart();
+  cart,
+  open,
+  setOpen,
+  removeFromCart,
+  increaseQuantity,
+  decreaseQuantity,
+  clearCart,
+} = useCart();
 
-  const [open, setOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-
+const [checkoutOpen, setCheckoutOpen] = useState(false);
   const total = cart.reduce((acc, item) => {
     if (item.fracionado) {
       const gramas = item.quantidadeGramas || 0;
